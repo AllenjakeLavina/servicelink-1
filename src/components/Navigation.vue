@@ -22,6 +22,10 @@
               <div class="icon"><i class="fas fa-concierge-bell"></i></div>
               <span>My Services</span>
             </router-link>
+            <router-link to="/messages" class="nav-item">
+              <div class="icon"><i class="fas fa-envelope"></i></div>
+              <span>Messages</span>
+            </router-link>
           </template>
           
           <!-- Provider links -->
@@ -33,6 +37,10 @@
             <router-link to="/provider/services" class="nav-item">
               <div class="icon"><i class="fas fa-briefcase"></i></div>
               <span>My Services</span>
+            </router-link>
+            <router-link to="/messages" class="nav-item">
+              <div class="icon"><i class="fas fa-envelope"></i></div>
+              <span>Messages</span>
             </router-link>
           </template>
           
@@ -50,31 +58,15 @@
               <div class="icon"><i class="fas fa-cogs"></i></div>
               <span>Services</span>
             </router-link>
+            <router-link to="/messages" class="nav-item">
+              <div class="icon"><i class="fas fa-envelope"></i></div>
+              <span>Messages</span>
+            </router-link>
           </template>
         </div>
 
         <!-- User actions -->
         <div class="user-actions">
-          <!-- Profile link based on role -->
-          <template v-if="userRole === 'CLIENT'">
-            <router-link to="/client/profile" class="nav-item profile-link">
-              <div class="icon"><i class="fas fa-user-circle"></i></div>
-              <span>Profile</span>
-            </router-link>
-          </template>
-          <template v-else-if="userRole === 'PROVIDER'">
-            <router-link to="/provider/profile" class="nav-item profile-link">
-              <div class="icon"><i class="fas fa-user-circle"></i></div>
-              <span>Profile</span>
-            </router-link>
-          </template>
-          <template v-else-if="userRole === 'ADMIN'">
-            <router-link to="/admin/profile" class="nav-item profile-link">
-              <div class="icon"><i class="fas fa-user-circle"></i></div>
-              <span>Profile</span>
-            </router-link>
-          </template>
-          
           <!-- Notification item -->
           <div class="nav-item notification-wrapper" v-if="isAuthenticated" @click="toggleNotificationDropdown" ref="notificationRef">
             <div class="notification-icon">
@@ -127,10 +119,31 @@
                 </div>
                 <span>{{ userName }}</span>
               </div>
-              <router-link to="/messages" class="dropdown-item">
-                <i class="fas fa-envelope"></i>
-                <span>Messages</span>
-              </router-link>
+              
+              <!-- Client Profile Link -->
+              <template v-if="userRole === 'CLIENT'">
+                <router-link to="/client/profile" class="dropdown-item">
+                  <i class="fas fa-user-circle"></i>
+                  <span>Profile</span>
+                </router-link>
+              </template>
+              
+              <!-- Provider Profile Link -->
+              <template v-if="userRole === 'PROVIDER'">
+                <router-link to="/provider/profile" class="dropdown-item">
+                  <i class="fas fa-user-circle"></i>
+                  <span>Profile</span>
+                </router-link>
+              </template>
+              
+              <!-- Admin Profile Link -->
+              <template v-if="userRole === 'ADMIN'">
+                <router-link to="/admin/profile" class="dropdown-item">
+                  <i class="fas fa-user-circle"></i>
+                  <span>Profile</span>
+                </router-link>
+              </template>
+              
               <router-link to="/settings" class="dropdown-item">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
@@ -149,6 +162,165 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Mobile-specific navigation layout -->
+  <div class="mobile-nav-layout" v-if="isMobile && shouldShowNav">
+    <!-- Top navbar spacer to push content down -->
+    <div class="mobile-top-spacer"></div>
+    
+    <!-- Top navbar with logo and profile -->
+    <div class="mobile-top-navbar">
+      <div class="mobile-logo">
+        <router-link to="/">
+          <img src="../assets/logo.png" alt="ServiceLink" />
+        </router-link>
+      </div>
+
+      <div class="mobile-profile-icon" @click="toggleUserMenu">
+        <i class="fas fa-user-circle"></i>
+      </div>
+
+      <!-- User dropdown menu -->
+      <div class="mobile-dropdown-menu" v-if="showUserMenu" ref="mobileDropdownRef">
+        <div class="dropdown-header">
+          <div class="dropdown-close" @click="toggleUserMenu">
+            <i class="fas fa-times"></i>
+          </div>
+          <div class="user-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <span class="user-name">{{ userName }}</span>
+          <span class="user-email" v-if="userEmail">{{ userEmail }}</span>
+        </div>
+        
+        <div class="dropdown-items">
+          <!-- Client Profile Link -->
+          <template v-if="userRole === 'CLIENT'">
+            <router-link to="/client/profile" class="dropdown-item" @click="showUserMenu = false">
+              <div class="item-icon">
+                <i class="fas fa-user"></i>
+              </div>
+              <div class="item-content">
+                <span class="item-title">Profile</span>
+                <span class="item-subtitle">View your profile</span>
+              </div>
+              <div class="item-arrow">
+                <i class="fas fa-chevron-right"></i>
+              </div>
+            </router-link>
+          </template>
+          
+          <!-- Provider Profile Link -->
+          <template v-if="userRole === 'PROVIDER'">
+            <router-link to="/provider/profile" class="dropdown-item" @click="showUserMenu = false">
+              <div class="item-icon">
+                <i class="fas fa-user"></i>
+              </div>
+              <div class="item-content">
+                <span class="item-title">Profile</span>
+                <span class="item-subtitle">View your profile</span>
+              </div>
+              <div class="item-arrow">
+                <i class="fas fa-chevron-right"></i>
+              </div>
+            </router-link>
+          </template>
+          
+          <!-- Admin Profile Link -->
+          <template v-if="userRole === 'ADMIN'">
+            <router-link to="/admin/profile" class="dropdown-item" @click="showUserMenu = false">
+              <div class="item-icon">
+                <i class="fas fa-user"></i>
+              </div>
+              <div class="item-content">
+                <span class="item-title">Profile</span>
+                <span class="item-subtitle">View your profile</span>
+              </div>
+              <div class="item-arrow">
+                <i class="fas fa-chevron-right"></i>
+              </div>
+            </router-link>
+          </template>
+
+          <router-link to="/settings" class="dropdown-item" @click="showUserMenu = false">
+            <div class="item-icon">
+              <i class="fas fa-cog"></i>
+            </div>
+            <div class="item-content">
+              <span class="item-title">Settings</span>
+              <span class="item-subtitle">Manage your account</span>
+            </div>
+            <div class="item-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </router-link>
+
+          <div class="dropdown-divider"></div>
+          
+          <div class="dropdown-item logout" @click="handleLogout">
+            <div class="item-icon">
+              <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="item-content">
+              <span class="item-title">Logout</span>
+              <span class="item-subtitle">Sign out from your account</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom navigation -->
+    <div class="mobile-bottom-navbar">
+      <!-- Client links -->
+      <template v-if="userRole === 'CLIENT'">
+        <router-link to="/client/bookings" class="mobile-nav-item" :class="{ 'active': isRouteActive('client/bookings') }">
+          <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+          <span>Bookings</span>
+        </router-link>
+        <router-link to="/client/services" class="mobile-nav-item" :class="{ 'active': isRouteActive('client/services') }">
+          <div class="icon"><i class="fas fa-concierge-bell"></i></div>
+          <span>Services</span>
+        </router-link>
+        <router-link to="/messages" class="mobile-nav-item" :class="{ 'active': isRouteActive('messages') }">
+          <div class="icon"><i class="fas fa-envelope"></i></div>
+          <span>Messages</span>
+        </router-link>
+      </template>
+      
+      <!-- Provider links -->
+      <template v-if="userRole === 'PROVIDER'">
+        <router-link to="/provider/bookings" class="mobile-nav-item" :class="{ 'active': isRouteActive('provider/bookings') }">
+          <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+          <span>Bookings</span>
+        </router-link>
+        <router-link to="/provider/services" class="mobile-nav-item" :class="{ 'active': isRouteActive('provider/services') }">
+          <div class="icon"><i class="fas fa-briefcase"></i></div>
+          <span>Services</span>
+        </router-link>
+        <router-link to="/messages" class="mobile-nav-item" :class="{ 'active': isRouteActive('messages') }">
+          <div class="icon"><i class="fas fa-envelope"></i></div>
+          <span>Messages</span>
+        </router-link>
+      </template>
+      
+      <!-- Admin links -->
+      <template v-if="userRole === 'ADMIN'">
+        <router-link to="/admin/dashboard" class="mobile-nav-item" :class="{ 'active': isRouteActive('admin/dashboard') }">
+          <div class="icon"><i class="fas fa-tachometer-alt"></i></div>
+          <span>Dashboard</span>
+        </router-link>
+        <router-link to="/admin/services" class="mobile-nav-item" :class="{ 'active': isRouteActive('admin/services') }">
+          <div class="icon"><i class="fas fa-cogs"></i></div>
+          <span>Services</span>
+        </router-link>
+        <router-link to="/messages" class="mobile-nav-item" :class="{ 'active': isRouteActive('messages') }">
+          <div class="icon"><i class="fas fa-envelope"></i></div>
+          <span>Messages</span>
+        </router-link>
+      </template>
     </div>
   </div>
 </template>
@@ -184,7 +356,17 @@ export default {
     const userRole = ref('');
     const isAuthenticated = ref(false);
     const userName = ref('');
+    const userEmail = ref('');
     const userAvatar = ref('/default-avatar.png');
+    
+    // Get route and router
+    const route = useRoute();
+    const router = useRouter();
+    
+    // Add isRouteActive method to check active routes
+    const isRouteActive = (path) => {
+      return route.path.includes(path);
+    };
     
     // Notification state
     const notificationCount = ref(0);
@@ -192,10 +374,7 @@ export default {
     const recentNotifications = ref([]);
     const loadingNotifications = ref(false);
     const notificationRef = ref(null);
-    
-    // Get route and router
-    const route = useRoute();
-    const router = useRouter();
+    const mobileDropdownRef = ref(null);
     
     // Check if navigation should be shown based on route
     const shouldShowNav = computed(() => {
@@ -210,11 +389,25 @@ export default {
     
     // Toggle user dropdown menu
     const toggleUserMenu = () => {
+      console.log('Toggling user menu, current state:', showUserMenu.value);
       showUserMenu.value = !showUserMenu.value;
+      
       // Close notification dropdown if open
       if (showNotificationDropdown.value) {
         showNotificationDropdown.value = false;
       }
+      
+      // If opening the menu on mobile, ensure it's visible
+      if (showUserMenu.value && isMobile.value) {
+        window.scrollTo(0, 0);
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        document.body.classList.add('has-mobile-dropdown'); // Add class for styling
+      } else {
+        document.body.style.overflow = ''; // Restore scrolling
+        document.body.classList.remove('has-mobile-dropdown'); // Remove class
+      }
+      
+      console.log('Menu toggled, new state:', showUserMenu.value);
     };
     
     // Toggle notification dropdown
@@ -407,8 +600,17 @@ export default {
     
     // Close dropdown when clicking elsewhere
     const handleClickOutside = (event) => {
-      if (showUserMenu.value && !event.target.closest('.user-profile')) {
+      if (showUserMenu.value) {
+        // For desktop dropdown
+        if (!event.target.closest('.user-profile') && !isMobile.value) {
         showUserMenu.value = false;
+        }
+        
+        // For mobile dropdown
+        if (isMobile.value && mobileDropdownRef.value && !mobileDropdownRef.value.contains(event.target) && 
+            !event.target.closest('.mobile-profile-icon')) {
+          toggleUserMenu();
+        }
       }
       
       if (showNotificationDropdown.value && notificationRef.value && !notificationRef.value.contains(event.target)) {
@@ -438,6 +640,7 @@ export default {
             if (response.success) {
               const userData = response.data;
               userName.value = `${userData.user.firstName} ${userData.user.lastName}`;
+              userEmail.value = userData.user.email;
               
               // Handle profile picture
               if (userData.user.profilePicture) {
@@ -449,6 +652,7 @@ export default {
             if (response.success) {
               const userData = response.data;
               userName.value = `${userData.firstName} ${userData.lastName}`;
+              userEmail.value = userData.email;
               
               // Handle profile picture
               if (userData.profilePicture) {
@@ -509,6 +713,7 @@ export default {
       userRole,
       isAuthenticated,
       userName,
+      userEmail,
       userAvatar,
       shouldShowNav,
       toggleUserMenu,
@@ -525,7 +730,9 @@ export default {
       getNotificationIcon,
       formatTime,
       viewNotification,
-      getFileUrl
+      getFileUrl,
+      isRouteActive,
+      mobileDropdownRef
     };
   }
 };
@@ -543,6 +750,17 @@ export default {
   position: fixed;
   top: 0;
   left: 0;
+}
+
+/* Add this global fix for the content padding */
+:root {
+  --nav-height: 80px;
+  --mobile-nav-height: 60px;
+}
+
+/* Push content below the navbar */
+#app {
+  padding-top: var(--nav-height);
 }
 
 .nav-content {
@@ -951,73 +1169,417 @@ export default {
   color: #757575;
 }
 
-/* Mobile responsive styles */
-@media (max-width: 767px) {
-  .navigation-container {
-    position: fixed;
-    bottom: 0;
-    top: auto;
-    background: linear-gradient(to right, #00C853, #009688);
-  }
-  
-  .nav-content {
-    flex-direction: column-reverse;
-    height: auto;
-    padding: 10px;
-  }
-  
-  .right-content {
-    flex-direction: column;
+/* Mobile navigation CSS */
+.mobile-nav-layout {
+  width: 100%;
+  position: relative;
+  z-index: 1000;
+}
+
+/* Mobile top navbar */
+.mobile-top-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to right, #00C853, #009688);
+  padding: 15px 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 90px; /* Increased to 90px */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1050;
+}
+
+/* Spacer to push content down */
+.mobile-top-spacer {
+  display: block;
     width: 100%;
-  }
-  
-  .nav-links {
-    width: 100%;
-    justify-content: space-around;
-    order: 2;
-  }
-  
-  .user-actions {
-    width: 100%;
-    justify-content: flex-end;
-    margin-bottom: 10px;
-  }
-  
-  .user-profile {
-    margin-left: 0;
-  }
-  
-  .notifications-dropdown {
+  height: 90px;  /* Increased to match 90px height */
+  visibility: visible !important;
+}
+
+.mobile-logo {
+  height: 55px; /* Increased for 90px navbar */
+  display: flex;
+  align-items: center;
+}
+
+.mobile-logo img {
+  height: 75px; /* Increased for 90px navbar */
+}
+
+.mobile-profile-icon {
+  width: 60px; /* Increased for 90px navbar */
+  height: 60px; /* Increased for 90px navbar */
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30px; /* Increased for 90px navbar */
+  color: white;
+  cursor: pointer;
+}
+
+/* Mobile dropdown menu */
+.mobile-dropdown-menu {
+  display: flex !important;
+  flex-direction: column;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 85% !important;
+  max-width: 340px !important;
+  max-height: 80vh !important;
+  background-color: white !important;
+  z-index: 9999 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+  border-radius: 15px !important;
+  overflow: hidden !important;
+  animation: mobileDropdownFadeIn 0.3s ease forwards;
+}
+
+/* Add overlay background for mobile dropdown */
+.mobile-dropdown-menu::before {
+  content: '';
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 60px;
-    width: 100%;
-    max-height: none;
-    margin-top: 0;
-    border-radius: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+}
+
+@keyframes mobileDropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%) scale(0.95);
   }
-  
-  .recent-notifications {
-    max-height: calc(100% - 50px);
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
-  
-  .nav-item {
+}
+
+@keyframes itemSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile dropdown header */
+.mobile-dropdown-menu .dropdown-header {
+  background: #00C853;
+  color: white;
+  display: flex;
     flex-direction: column;
-    padding: 8px;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  padding: 30px 15px 20px;
+}
+
+/* Dropdown items container */
+.mobile-dropdown-menu .dropdown-items {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background-color: white;
+}
+
+/* Each dropdown item */
+.mobile-dropdown-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  color: #333;
+  text-decoration: none;
+  position: relative;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #e0e0e0;
+  animation: itemSlideIn 0.3s ease forwards;
+  opacity: 0;
+}
+
+.mobile-dropdown-menu .dropdown-item:hover,
+.mobile-dropdown-menu .dropdown-item:active {
+  background-color: #f1fffa;
+}
+
+.mobile-dropdown-menu .dropdown-divider {
+  height: 1px;
+  background-color: #e0e0e0;
     margin: 0;
   }
   
-  .nav-item span {
-    font-size: 12px;
-    margin-top: 5px;
+.mobile-dropdown-menu .item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e8f5e9;
+  color: #00C853;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.mobile-dropdown-menu .item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-dropdown-menu .item-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #222;
+}
+
+.mobile-dropdown-menu .item-subtitle {
+  font-size: 13px;
+  color: #00C853;
+}
+
+/* Logout specific styling */
+.mobile-dropdown-menu .logout .item-icon {
+  background-color: #ffebee;
+  color: #f44336;
+}
+
+.mobile-dropdown-menu .logout .item-title {
+  color: #f44336;
+}
+
+/* Bottom navbar */
+.mobile-bottom-navbar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: linear-gradient(to right, #00C853, #009688);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 90px; /* Increased to 90px */
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1050;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 12px; /* Increased for 90px navbar */
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.mobile-nav-item .icon {
+  font-size: 32px; /* Increased for 90px navbar */
+  height: 42px; /* Increased for 90px navbar */
+  width: 42px; /* Increased for 90px navbar */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px; /* Increased for 90px navbar */
+  background-color: transparent;
+}
+
+.mobile-nav-item span {
+  font-size: 14px; /* Increased for 90px navbar */
+  font-weight: 500;
+}
+
+.mobile-nav-item.active {
+  color: white;
+  position: relative;
+}
+
+.mobile-nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 25%;
+  width: 50%;
+  height: 3px;
+  background-color: white;
+  border-radius: 3px;
+}
+
+/* Ensure content doesn't get hidden */
+@media (max-width: 767px) {
+  /* Global CSS reset for all elements */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Global page structure fix */
+  html, body {
+    margin: 0;
+    padding: 0;
   }
   
-  .icon {
-    margin-right: 0;
-    height: 36px;
-    width: 36px;
+  body {
+    padding-top: 0 !important;
+    padding-bottom: 90px !important; /* Updated to match 90px navbar height */
   }
+  
+  /* Add a global style for all elements that need to be pushed down */
+  .view, .page, .content-view, main, section, article, .container, .content {
+    margin-top: 90px !important; /* Updated to match 90px navbar height */
+    padding-top: 15px !important; /* Increased padding */
+  }
+
+  /* Content fixes */
+  #app {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  
+  .app-content,
+  .page-content,
+  .main-content {
+    margin-top: 90px !important; /* Updated to match 90px navbar height */
+    padding-top: 15px !important; /* Increased padding */
+  }
+  
+  /* Force the spacer to be visible */
+  .mobile-top-spacer {
+    display: block !important;
+    min-height: 90px !important; /* Updated to match 90px navbar height */
+  }
+  
+  .navigation-container {
+    display: none; /* Hide the regular navigation on mobile */
+  }
+  
+  /* Only show mobile nav layout on mobile */
+  .mobile-nav-layout {
+    display: block;
+  }
+
+  /* Ensure dropdown is visible on mobile */
+  .mobile-dropdown-menu {
+    display: flex !important;
+    flex-direction: column;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 85% !important;
+    max-width: 320px !important;
+    max-height: 80vh !important;
+    background-color: white !important;
+    z-index: 9999 !important;
+  }
+  
+  /* Make header more visible */
+  .mobile-dropdown-menu .dropdown-header {
+    background-color: #00C853 !important;
+    padding: 25px 15px !important;
+  }
+  
+  /* More obvious close button */
+  .mobile-dropdown-menu .dropdown-close {
+    width: 36px !important;
+    height: 36px !important;
+    background-color: rgba(255,255,255,0.3) !important;
+    right: 12px !important;
+    top: 12px !important;
+    font-size: 20px !important;
+  }
+  
+  /* Add bottom border to modal overlay */
+  body.has-mobile-dropdown::after {
+    content: "";
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background-color: #00C853;
+    z-index: 9998;
+  }
+}
+
+/* Target common container classes to ensure padding */
+.container, 
+.content-wrapper, 
+.page-container,
+.booking-list,
+.card,
+.main-content {
+  margin-bottom: var(--mobile-nav-height) !important;
+  padding-bottom: 20px !important;
+}
+
+/* Add a global style for all elements that need to be pushed down */
+.view, .page, .content-view, main, section, article, .container, .content {
+  margin-top: 90px !important; /* Updated to match 90px navbar height */
+  padding-top: 15px !important; /* Increased padding */
+}
+
+/* Make sure the mobile top navbar has the highest z-index */
+.mobile-top-navbar {
+  z-index: 1050 !important;
+}
+
+.mobile-bottom-navbar {
+  z-index: 1050 !important;
+}
+
+.mobile-dropdown-menu .user-avatar {
+  width: 60px;
+  height: 60px;
+  background-color: white;
+  color: #00C853;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.mobile-dropdown-menu .user-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.mobile-dropdown-menu .user-email {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.mobile-dropdown-menu .dropdown-close {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  width: 32px;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
 }
 </style>
