@@ -130,7 +130,7 @@ export default {
 /* Hero Section */
 .hero {
   position: relative;
-  background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 50%, #4299e1 100%);
+  background: linear-gradient(135deg, #106e40 0%, #38b676 100%);
   min-height: 600px;
   display: flex;
   align-items: center;
@@ -145,7 +145,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  /* background: url('path-to-pattern.png') repeat; */
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
   opacity: 0.1;
 }
 
@@ -158,9 +158,9 @@ export default {
 }
 
 .hero-logo {
-  width: 100px;
+  width: 150px;
   margin-bottom: 40px;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
 
 .hero h1 {
@@ -169,7 +169,8 @@ export default {
   line-height: 1.2;
   margin-bottom: 24px;
   letter-spacing: -0.02em;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: white;
 }
 
 .hero-tagline {
@@ -195,19 +196,20 @@ export default {
 }
 
 .primary-btn {
-  background-color: white;
-  color: #2b6cb0;
+  background-color: #ffffff;
+  color: #106e40;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .primary-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  background-color: #f0f0f0;
 }
 
 .outline-btn {
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  color: white;
+  border: 2px solid #ffffff;
+  color: #ffffff;
 }
 
 .outline-btn:hover {
@@ -230,19 +232,46 @@ export default {
 .section-header h2 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #1a365d;
+  color: #106e40;
   margin-bottom: 16px;
+  position: relative;
+  display: inline-block;
+}
+
+.section-header h2::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -12px;
+  width: 60px;
+  height: 4px;
+  background-color: #38b676;
+  transform: translateX(-50%);
+  border-radius: 2px;
 }
 
 .section-subtitle {
   font-size: 1.2rem;
   color: #4a5568;
+  margin-top: 24px;
 }
 
 /* Categories Section */
 .categories {
   padding: 100px 0;
   background-color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.categories::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(90deg, #106e40, #38b676, #8cc63f);
 }
 
 .categories-grid {
@@ -256,26 +285,53 @@ export default {
   padding: 40px;
   border-radius: 16px;
   text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   border: 1px solid #e2e8f0;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.category-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: #8cc63f;
+  z-index: 2;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
 }
 
 .category-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.category-card:hover::before {
+  transform: scaleX(1);
 }
 
 .category-icon {
   font-size: 3rem;
   margin-bottom: 24px;
   display: inline-block;
+  background: #f0fff4;
+  width: 90px;
+  height: 90px;
+  line-height: 90px;
+  border-radius: 50%;
+  color: #106e40;
 }
 
 .category-card h3 {
   font-size: 1.5rem;
   margin-bottom: 16px;
-  color: #2d3748;
+  color: #106e40;
   font-weight: 600;
 }
 
@@ -286,20 +342,52 @@ export default {
 }
 
 .category-link {
-  color: #2b6cb0;
+  color: #38b676;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
+  display: inline-block;
+  padding: 8px 0;
+  position: relative;
+}
+
+.category-link::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #8cc63f;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
 }
 
 .category-link:hover {
-  color: #1a365d;
+  color: #106e40;
+}
+
+.category-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
 }
 
 /* Featured Providers Section */
 .featured-providers {
   padding: 100px 0;
   background-color: #f8fafc;
+  position: relative;
+}
+
+.featured-providers::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(16, 110, 64, 0.2), transparent);
 }
 
 .providers-grid {
@@ -312,27 +400,38 @@ export default {
   background: white;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   border: 1px solid #e2e8f0;
 }
 
 .provider-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
 }
 
 .provider-image {
   width: 100%;
   height: 250px;
   overflow: hidden;
+  position: relative;
+}
+
+.provider-image::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);
 }
 
 .provider-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.5s ease;
 }
 
 .provider-card:hover .provider-image img {
@@ -346,7 +445,7 @@ export default {
 .provider-info h3 {
   font-size: 1.3rem;
   font-weight: 600;
-  color: #2d3748;
+  color: #106e40;
   margin-bottom: 8px;
 }
 
@@ -364,11 +463,17 @@ export default {
 }
 
 .skill-tag {
-  background-color: #ebf4ff;
-  color: #2b6cb0;
+  background-color: #f0fff4;
+  color: #38b676;
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.skill-tag:hover {
+  background-color: #38b676;
+  color: white;
 }
 
 .provider-footer {
@@ -387,7 +492,7 @@ export default {
 }
 
 .stars {
-  color: #f6ad55;
+  color: #8cc63f;
   font-weight: 600;
 }
 
@@ -397,14 +502,17 @@ export default {
 }
 
 .view-profile {
-  color: #2b6cb0;
+  color: #38b676;
   text-decoration: none;
   font-weight: 600;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
+  padding: 6px 12px;
+  border-radius: 6px;
 }
 
 .view-profile:hover {
-  color: #1a365d;
+  color: white;
+  background-color: #38b676;
 }
 
 /* Loading and Error States */
@@ -415,7 +523,7 @@ export default {
 
 .spinner {
   border: 4px solid #e2e8f0;
-  border-top: 4px solid #2b6cb0;
+  border-top: 4px solid #38b676;
   border-radius: 50%;
   width: 40px;
   height: 40px;

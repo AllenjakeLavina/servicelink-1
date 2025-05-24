@@ -7,7 +7,7 @@
       <h2>Verify Your Email</h2>
       <p class="subtitle">Please enter the verification code sent to your email</p>
       
-      <form @submit.prevent="handleVerification">
+      <form @submit.prevent="handleVerification" v-if="!isVerified">
         <div v-if="error" class="error-message">{{ error }}</div>
         <div v-if="success" class="success-message">{{ success }}</div>
         
@@ -45,6 +45,18 @@
         </div>
       </form>
       
+      <!-- Verification Success UI -->
+      <div v-if="isVerified" class="verification-success">
+        <div class="success-icon">✓</div>
+        <h3>Email Verified Successfully!</h3>
+        <p>Your email has been verified. You can now log in to access your account.</p>
+        <div class="form-actions">
+          <button class="primary-btn" @click="navigateToLogin">
+            Continue to Login
+          </button>
+        </div>
+      </div>
+      
       <div class="auth-footer">
         <p>Already verified? <router-link to="/login">Login</router-link></p>
       </div>
@@ -69,6 +81,7 @@ export default {
     const loading = ref(false);
     const resendLoading = ref(false);
     const resendTimer = ref(0);
+    const isVerified = ref(false);
     let timerInterval;
 
     const startResendTimer = () => {
@@ -80,6 +93,10 @@ export default {
           clearInterval(timerInterval);
         }
       }, 1000);
+    };
+
+    const navigateToLogin = () => {
+      router.push('/login');
     };
 
     const handleVerification = async () => {
@@ -97,38 +114,24 @@ export default {
         const verifyResponse = await authService.verifyEmail(email.value, verificationCode.value);
         
         if (verifyResponse.success) {
-          // After successful verification, attempt to login
+          // After successful verification, show success UI
+          isVerified.value = true;
+          success.value = 'Email verified successfully!';
+          
+          // Try to login in the background (optional)
           try {
             // Get password from route query params (passed from registration)
             const password = route.query.password;
-            if (!password) {
-              success.value = 'Email verified successfully! Please proceed to login.';
-              setTimeout(() => {
-                router.push('/login');
-              }, 2000);
-              return;
-            }
-
-            const loginResponse = await authService.login(email.value, password);
-            if (loginResponse.success) {
-              success.value = 'Email verified and logged in successfully!';
-              // Store the token
-              localStorage.setItem('token', loginResponse.data.token);
-              // Redirect to home page
-              setTimeout(() => {
-                router.push('/');
-              }, 1500);
-            } else {
-              success.value = 'Email verified successfully! Please proceed to login.';
-              setTimeout(() => {
-                router.push('/login');
-              }, 2000);
+            if (password) {
+              const loginResponse = await authService.login(email.value, password);
+              if (loginResponse.success) {
+                // Store the token
+                localStorage.setItem('token', loginResponse.data.token);
+                localStorage.setItem('userRole', loginResponse.data.user.role);
+              }
             }
           } catch (loginErr) {
-            success.value = 'Email verified successfully! Please proceed to login.';
-            setTimeout(() => {
-              router.push('/login');
-            }, 2000);
+            console.log('Auto login failed, user will need to login manually');
           }
         } else {
           error.value = verifyResponse.message || 'Verification failed';
@@ -185,8 +188,10 @@ export default {
       loading,
       resendLoading,
       resendTimer,
+      isVerified,
       handleVerification,
-      handleResendCode
+      handleResendCode,
+      navigateToLogin
     };
   }
 };
@@ -341,5 +346,37 @@ input:focus {
 
 .auth-footer a:hover {
   text-decoration: underline;
+}
+
+/* Success verification styles */
+.verification-success {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background-color: #48bb78;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-weight: bold;
+}
+
+.verification-success h3 {
+  color: #2f855a;
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+}
+
+.verification-success p {
+  color: #4a5568;
+  margin-bottom: 24px;
+  line-height: 1.6;
 }
 </style> 

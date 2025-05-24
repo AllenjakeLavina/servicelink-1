@@ -1,130 +1,152 @@
 <template>
-  <div :class="['navigation-container', isMobile ? 'mobile' : 'desktop']" v-if="shouldShowNav">
+  <div class="navigation-container" v-if="shouldShowNav">
     <div class="nav-content">
-      <!-- Logo for desktop view -->
-      <div class="logo" v-if="!isMobile">
+      <!-- Logo aligned to the left -->
+      <div class="logo">
         <router-link to="/">
           <img src="../assets/logo.png" alt="ServiceLink" />
         </router-link>
       </div>
 
-      <!-- Navigation Links -->
-      <div class="nav-links">
-        <!-- Common links for all authenticated users -->
-        <div class="nav-item notification-wrapper" v-if="isAuthenticated" @click="toggleNotificationDropdown" ref="notificationRef">
-          <div class="notification-icon">
-            <i class="fas fa-bell"></i>
-            <div v-if="notificationCount > 0" class="notification-badge">{{ formatCount(notificationCount) }}</div>
-          </div>
-          <span>Notifications</span>
+      <!-- All navigation items moved to the right side -->
+      <div class="right-content">
+        <!-- Navigation Links -->
+        <div class="nav-links">
+          <!-- Client links -->
+          <template v-if="userRole === 'CLIENT'">
+            <router-link to="/client/bookings" class="nav-item">
+              <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+              <span>Bookings</span>
+            </router-link>
+            <router-link to="/client/services" class="nav-item">
+              <div class="icon"><i class="fas fa-concierge-bell"></i></div>
+              <span>My Services</span>
+            </router-link>
+          </template>
           
-          <!-- Notifications dropdown -->
-          <div v-if="showNotificationDropdown" class="notifications-dropdown">
-            <div class="notifications-header">
-              <h3>Notifications</h3>
-              <router-link to="/notifications" class="view-all" @click="showNotificationDropdown = false">
-                View All
-              </router-link>
+          <!-- Provider links -->
+          <template v-if="userRole === 'PROVIDER'">
+            <router-link to="/provider/bookings" class="nav-item">
+              <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+              <span>Bookings</span>
+            </router-link>
+            <router-link to="/provider/services" class="nav-item">
+              <div class="icon"><i class="fas fa-briefcase"></i></div>
+              <span>My Services</span>
+            </router-link>
+          </template>
+          
+          <!-- Admin links -->
+          <template v-if="userRole === 'ADMIN'">
+            <router-link to="/admin/dashboard" class="nav-item">
+              <div class="icon"><i class="fas fa-tachometer-alt"></i></div>
+              <span>Dashboard</span>
+            </router-link>
+            <router-link to="/admin/users" class="nav-item">
+              <div class="icon"><i class="fas fa-users"></i></div>
+              <span>Users</span>
+            </router-link>
+            <router-link to="/admin/services" class="nav-item">
+              <div class="icon"><i class="fas fa-cogs"></i></div>
+              <span>Services</span>
+            </router-link>
+          </template>
+        </div>
+
+        <!-- User actions -->
+        <div class="user-actions">
+          <!-- Profile link based on role -->
+          <template v-if="userRole === 'CLIENT'">
+            <router-link to="/client/profile" class="nav-item profile-link">
+              <div class="icon"><i class="fas fa-user-circle"></i></div>
+              <span>Profile</span>
+            </router-link>
+          </template>
+          <template v-else-if="userRole === 'PROVIDER'">
+            <router-link to="/provider/profile" class="nav-item profile-link">
+              <div class="icon"><i class="fas fa-user-circle"></i></div>
+              <span>Profile</span>
+            </router-link>
+          </template>
+          <template v-else-if="userRole === 'ADMIN'">
+            <router-link to="/admin/profile" class="nav-item profile-link">
+              <div class="icon"><i class="fas fa-user-circle"></i></div>
+              <span>Profile</span>
+            </router-link>
+          </template>
+          
+          <!-- Notification item -->
+          <div class="nav-item notification-wrapper" v-if="isAuthenticated" @click="toggleNotificationDropdown" ref="notificationRef">
+            <div class="notification-icon">
+              <i class="fas fa-bell"></i>
+              <div v-if="notificationCount > 0" class="notification-badge">{{ formatCount(notificationCount) }}</div>
             </div>
-            <div v-if="loadingNotifications" class="notifications-loading">
-              <div class="loading-spinner"></div>
-            </div>
-            <div v-else-if="recentNotifications.length === 0" class="no-notifications">
-              <p>No notifications</p>
-            </div>
-            <div v-else class="recent-notifications">
-              <div 
-                v-for="notification in recentNotifications" 
-                :key="notification.id" 
-                :class="['notification-item', { unread: !notification.isRead }]"
-                @click="viewNotification(notification)"
-              >
-                <div class="notification-mini-icon">
-                  <i :class="getNotificationIcon(notification.type)"></i>
-                </div>
-                <div class="notification-content">
-                  <div class="notification-title">{{ notification.title }}</div>
-                  <div class="notification-time">{{ formatTime(notification.createdAt) }}</div>
+            
+            <!-- Notifications dropdown -->
+            <div v-if="showNotificationDropdown" class="notifications-dropdown">
+              <div class="notifications-header">
+                <h3>Notifications</h3>
+                <router-link to="/notifications" class="view-all" @click="showNotificationDropdown = false">
+                  View All
+                </router-link>
+              </div>
+              <div v-if="loadingNotifications" class="notifications-loading">
+                <div class="loading-spinner"></div>
+              </div>
+              <div v-else-if="recentNotifications.length === 0" class="no-notifications">
+                <p>No notifications</p>
+              </div>
+              <div v-else class="recent-notifications">
+                <div 
+                  v-for="notification in recentNotifications" 
+                  :key="notification.id" 
+                  :class="['notification-item', { unread: !notification.isRead }]"
+                  @click="viewNotification(notification)"
+                >
+                  <div class="notification-mini-icon">
+                    <i :class="getNotificationIcon(notification.type)"></i>
+                  </div>
+                  <div class="notification-content">
+                    <div class="notification-title">{{ notification.title }}</div>
+                    <div class="notification-time">{{ formatTime(notification.createdAt) }}</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <!-- Client links -->
-        <template v-if="userRole === 'CLIENT'">
-        
-          <router-link to="/client/bookings" class="nav-item">
-            <div class="icon"><i class="fas fa-calendar-alt"></i></div>
-            <span>Bookings</span>
-          </router-link>
-          <router-link to="/client/services" class="nav-item">
-            <div class="icon"><i class="fas fa-concierge-bell"></i></div>
-            <span>Services</span>
-          </router-link>
-          <router-link to="/client/profile" class="nav-item">
-            <div class="icon"><i class="fas fa-user-cog"></i></div>
-            <span>Profile</span>
-          </router-link>
-        </template>
-        
-        <!-- Provider links -->
-        <template v-if="userRole === 'PROVIDER'">
-         
-          <router-link to="/provider/bookings" class="nav-item">
-            <div class="icon"><i class="fas fa-calendar-alt"></i></div>
-            <span>Bookings</span>
-          </router-link>
-          <router-link to="/provider/services" class="nav-item">
-            <div class="icon"><i class="fas fa-briefcase"></i></div>
-            <span>My Services</span>
-          </router-link>
-          <router-link to="/provider/profile" class="nav-item">
-            <div class="icon"><i class="fas fa-user-cog"></i></div>
-            <span>Profile</span>
-          </router-link>
-        </template>
-        
-        <!-- Admin links -->
-        <template v-if="userRole === 'ADMIN'">
-          <router-link to="/admin/dashboard" class="nav-item">
-            <div class="icon"><i class="fas fa-tachometer-alt"></i></div>
-            <span>Dashboard</span>
-          </router-link>
-          <router-link to="/admin/users" class="nav-item">
-            <div class="icon"><i class="fas fa-users"></i></div>
-            <span>Users</span>
-          </router-link>
-          <router-link to="/admin/services" class="nav-item">
-            <div class="icon"><i class="fas fa-cogs"></i></div>
-            <span>Services</span>
-          </router-link>
-          <router-link to="/admin/verification" class="nav-item">
-            <div class="icon"><i class="fas fa-user-check"></i></div>
-            <span>Verification</span>
-          </router-link>
-        </template>
-      </div>
-
-      <!-- User actions -->
-      <div class="user-actions" v-if="!isMobile">
-        <div class="user-profile" v-if="isAuthenticated" @click="toggleUserMenu">
-          <img :src="userAvatar" alt="Profile" class="avatar" />
-          <span>{{ userName }}</span>
-          <div class="dropdown-icon"><i class="fas fa-chevron-down"></i></div>
           
-          <!-- Dropdown menu -->
-          <div class="dropdown-menu" v-if="showUserMenu">
-            <router-link to="/messages" class="dropdown-item">Messages</router-link>
+          <div class="user-profile" v-if="isAuthenticated" @click="toggleUserMenu">
+            <span class="username">{{ userName }}</span>
+            <div class="dropdown-icon"><i class="fas fa-chevron-down"></i></div>
             
-            <router-link to="/settings" class="dropdown-item">Settings</router-link>
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item logout" @click="handleLogout">Logout</div>
+            <!-- Dropdown menu -->
+            <div class="dropdown-menu" v-if="showUserMenu">
+              <div class="dropdown-header">
+                <div class="user-avatar">
+                  <i class="fas fa-user"></i>
+                </div>
+                <span>{{ userName }}</span>
+              </div>
+              <router-link to="/messages" class="dropdown-item">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+              </router-link>
+              <router-link to="/settings" class="dropdown-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+              </router-link>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item logout" @click="handleLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="auth-buttons" v-else>
-          <router-link to="/login" class="btn login-btn">Login</router-link>
-          <router-link to="/register" class="btn register-btn">Register</router-link>
+          
+          <div class="auth-buttons" v-if="!isAuthenticated">
+            <router-link to="/login" class="btn login-btn">Login</router-link>
+            <router-link to="/register" class="btn register-btn">Register</router-link>
+          </div>
         </div>
       </div>
     </div>
@@ -513,56 +535,99 @@ export default {
 /* Common styles */
 .navigation-container {
   width: 100%;
-  background-color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #00C853 0%, #009688 100%);
+  color: white;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   transition: all 0.3s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 .nav-content {
   display: flex;
   align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+  justify-content: space-between; /* Space between logo and right content */
+  width: 100%; /* Full width */
+  padding: 0; /* Remove padding */
+  height: 80px;
+}
+
+.logo {
+  padding-left: 30px; /* Add padding to logo container instead */
+}
+
+/* Right side content container */
+.right-content {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Reduced from 20px to create more consistent spacing */
+  padding-right: 30px; /* Add padding to right content */
 }
 
 .logo img {
-  height: 40px;
-  margin: 10px 0;
+  height: 50px;
+  margin: 15px 0;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  transition: transform 0.3s ease;
+}
+
+.logo img:hover {
+  transform: scale(1.05);
 }
 
 .nav-links {
   display: flex;
-  flex: 1;
+  align-items: center;
+  gap: 10px; /* Added specific gap instead of relying on nav-item margins */
 }
 
 .nav-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 10px 15px;
-  color: #555;
+  color: white;
   text-decoration: none;
-  transition: color 0.2s;
-}
-
-.nav-item.router-link-active {
-  color: #4CAF50;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px;
+  margin: 0; /* Removed 0 5px margin to use parent's gap instead */
 }
 
 .nav-item:hover {
-  color: #4CAF50;
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.nav-item.router-link-active {
+  background-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .icon {
-  font-size: 18px;
+  font-size: 22px;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.nav-item:hover .icon {
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .user-actions {
   display: flex;
   align-items: center;
+  gap: 10px; /* Added specific gap property */
 }
 
 .user-profile {
@@ -570,18 +635,28 @@ export default {
   align-items: center;
   cursor: pointer;
   position: relative;
-  padding: 10px;
+  padding: 8px 15px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 40px;
+  margin-left: 0; /* Removed the 15px margin */
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  margin-right: 8px;
+.user-profile:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.username {
+  font-weight: 500;
 }
 
 .dropdown-icon {
-  margin-left: 5px;
+  margin-left: 10px;
+  font-size: 14px;
+  opacity: 0.8;
 }
 
 .dropdown-menu {
@@ -589,18 +664,63 @@ export default {
   top: 100%;
   right: 0;
   background-color: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  border-radius: 4px;
-  min-width: 180px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  min-width: 220px;
   z-index: 1001;
+  margin-top: 10px;
+  overflow: hidden;
+  transform-origin: top right;
+  animation: dropdownFadeIn 0.2s forwards;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #eee;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background-color: #e0e0e0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #757575;
+  margin-right: 12px;
+  font-size: 20px;
 }
 
 .dropdown-item {
-  display: block;
-  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
   color: #333;
   text-decoration: none;
-  text-align: left;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item i {
+  width: 24px;
+  text-align: center;
+  margin-right: 10px;
+  font-size: 16px;
+  color: #666;
 }
 
 .dropdown-item:hover {
@@ -609,7 +729,7 @@ export default {
 
 .dropdown-divider {
   height: 1px;
-  background-color: #eee;
+  background-color: #eeeeee;
   margin: 5px 0;
 }
 
@@ -618,84 +738,48 @@ export default {
   cursor: pointer;
 }
 
+.logout i {
+  color: #f44336;
+}
+
 .auth-buttons {
   display: flex;
   gap: 10px;
 }
 
 .btn {
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 20px;
+  border-radius: 30px;
   text-decoration: none;
   font-weight: 500;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .login-btn {
-  color: #4CAF50;
-  border: 1px solid #4CAF50;
+  color: white;
+  border: 2px solid white;
+  background-color: transparent;
 }
 
 .login-btn:hover {
-  background-color: rgba(76, 175, 80, 0.1);
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .register-btn {
-  background-color: #4CAF50;
-  color: white;
+  background-color: white;
+  color: #00C853;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .register-btn:hover {
-  background-color: #45a049;
-}
-
-/* Desktop styles */
-.desktop {
-  position: fixed;
-  top: 0;
-  left: 0;
-}
-
-.desktop .nav-content {
-  height: 60px;
-}
-
-.desktop .nav-links {
-  justify-content: center;
-  margin: 0 20px;
-}
-
-.desktop .nav-item {
-  flex-direction: row;
-}
-
-.desktop .nav-item .icon {
-  margin-right: 8px;
-}
-
-/* Mobile styles */
-.mobile {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-}
-
-.mobile .nav-content {
-  height: 60px;
-}
-
-.mobile .nav-links {
-  justify-content: space-around;
-  width: 100%;
-}
-
-.mobile .nav-item {
-  padding: 8px;
-}
-
-.mobile .nav-item span {
-  font-size: 12px;
-  margin-top: 4px;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Notifications styles */
@@ -706,22 +790,37 @@ export default {
 
 .notification-icon {
   position: relative;
-  font-size: 18px;
-  margin-right: 8px;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 45px;
+  width: 45px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.notification-wrapper:hover .notification-icon {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
 }
 
 .notification-badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  background-color: #f44336;
+  top: 0;
+  right: 0;
+  background-color: #ff5252;
   color: white;
   border-radius: 10px;
   padding: 2px 6px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: bold;
-  min-width: 16px;
+  min-width: 18px;
   text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid #00C853;
+  transform: translate(25%, -25%);
 }
 
 .notifications-dropdown {
@@ -730,52 +829,58 @@ export default {
   right: -100px;
   width: 320px;
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   z-index: 1001;
-  margin-top: 10px;
+  margin-top: 15px;
   max-height: 400px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  animation: dropdownFadeIn 0.2s forwards;
 }
 
 .notifications-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 15px 20px;
   border-bottom: 1px solid #f0f0f0;
   background-color: #f9f9f9;
 }
 
 .notifications-header h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
+  color: #333;
 }
 
 .view-all {
-  font-size: 12px;
-  color: #4CAF50;
+  font-size: 14px;
+  color: #00C853;
   text-decoration: none;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: all 0.2s;
 }
 
 .view-all:hover {
-  text-decoration: underline;
+  background-color: rgba(0, 200, 83, 0.1);
 }
 
 .notifications-loading {
   display: flex;
   justify-content: center;
-  padding: 20px;
+  padding: 30px;
 }
 
 .loading-spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid #f3f3f3;
-  border-top: 2px solid #4CAF50;
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(0, 200, 83, 0.1);
+  border-top: 3px solid #00C853;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -786,9 +891,10 @@ export default {
 }
 
 .no-notifications {
-  padding: 20px;
+  padding: 30px;
   text-align: center;
-  color: #999;
+  color: #757575;
+  font-size: 15px;
 }
 
 .recent-notifications {
@@ -799,10 +905,11 @@ export default {
 .notification-item {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
+  padding: 15px 20px;
   border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  color: #333;
 }
 
 .notification-item:hover {
@@ -810,46 +917,82 @@ export default {
 }
 
 .notification-item.unread {
-  background-color: #f1f8e9;
+  background-color: #e8f5e9;
 }
 
 .notification-mini-icon {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background-color: #e8f5e9;
-  color: #4CAF50;
+  color: #00C853;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12px;
+  margin-right: 15px;
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .notification-item.unread .notification-mini-icon {
-  background-color: #4CAF50;
+  background-color: #00C853;
   color: white;
 }
 
 .notification-title {
-  font-size: 14px;
-  margin-bottom: 4px;
+  font-size: 15px;
+  margin-bottom: 5px;
+  font-weight: 500;
 }
 
 .notification-time {
-  font-size: 12px;
-  color: #999;
+  font-size: 13px;
+  color: #757575;
 }
 
-/* Mobile notification styles */
+/* Mobile responsive styles */
 @media (max-width: 767px) {
+  .navigation-container {
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    background: linear-gradient(to right, #00C853, #009688);
+  }
+  
+  .nav-content {
+    flex-direction: column-reverse;
+    height: auto;
+    padding: 10px;
+  }
+  
+  .right-content {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .nav-links {
+    width: 100%;
+    justify-content: space-around;
+    order: 2;
+  }
+  
+  .user-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+  }
+  
+  .user-profile {
+    margin-left: 0;
+  }
+  
   .notifications-dropdown {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 60px; /* Leave space for bottom nav */
+    bottom: 60px;
     width: 100%;
     max-height: none;
     margin-top: 0;
@@ -858,6 +1001,23 @@ export default {
   
   .recent-notifications {
     max-height: calc(100% - 50px);
+  }
+  
+  .nav-item {
+    flex-direction: column;
+    padding: 8px;
+    margin: 0;
+  }
+  
+  .nav-item span {
+    font-size: 12px;
+    margin-top: 5px;
+  }
+  
+  .icon {
+    margin-right: 0;
+    height: 36px;
+    width: 36px;
   }
 }
 </style>
