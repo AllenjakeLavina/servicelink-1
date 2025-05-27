@@ -108,6 +108,9 @@
           </div>
           
           <div class="user-profile" v-if="isAuthenticated" @click="toggleUserMenu">
+            <div v-if="userAvatar" class="user-avatar-small">
+              <img :src="userAvatar" alt="Profile" />
+            </div>
             <span class="username">{{ userName }}</span>
             <div class="dropdown-icon"><i class="fas fa-chevron-down"></i></div>
             
@@ -115,7 +118,8 @@
             <div class="dropdown-menu" v-if="showUserMenu">
               <div class="dropdown-header">
                 <div class="user-avatar">
-                  <i class="fas fa-user"></i>
+                  <img v-if="userAvatar" :src="userAvatar" alt="Profile" />
+                  <i v-else class="fas fa-user"></i>
                 </div>
                 <span>{{ userName }}</span>
               </div>
@@ -125,7 +129,7 @@
                 <router-link to="/client/profile" class="dropdown-item">
                   <i class="fas fa-user-circle"></i>
                   <span>Profile</span>
-                </router-link>
+              </router-link>
               </template>
               
               <!-- Provider Profile Link -->
@@ -178,8 +182,56 @@
         </router-link>
       </div>
 
-      <div class="mobile-profile-icon" @click="toggleUserMenu">
-        <i class="fas fa-user-circle"></i>
+      <div class="mobile-actions">
+        <!-- Notification bell for mobile -->
+        <div class="mobile-notification-icon" v-if="isAuthenticated" @click="toggleMobileNotificationDropdown">
+          <i class="fas fa-bell"></i>
+          <div v-if="notificationCount > 0" class="mobile-notification-badge">{{ formatCount(notificationCount) }}</div>
+        </div>
+
+        <div class="mobile-profile-icon" @click="toggleUserMenu">
+          <img v-if="userAvatar" :src="userAvatar" alt="Profile" />
+          <i v-else class="fas fa-user-circle"></i>
+        </div>
+      </div>
+
+      <!-- Mobile notification dropdown -->
+      <div v-if="showMobileNotificationDropdown" class="mobile-notifications-dropdown">
+        <div class="mobile-notifications-header">
+          <h3>Notifications</h3>
+          <div class="mobile-notifications-close" @click="showMobileNotificationDropdown = false">
+            <i class="fas fa-times"></i>
+          </div>
+        </div>
+        
+        <div v-if="loadingNotifications" class="mobile-notifications-loading">
+          <div class="loading-spinner"></div>
+        </div>
+        <div v-else-if="recentNotifications.length === 0" class="mobile-no-notifications">
+          <p>No notifications</p>
+        </div>
+        <div v-else class="mobile-recent-notifications">
+          <div 
+            v-for="notification in recentNotifications" 
+            :key="notification.id" 
+            :class="['mobile-notification-item', { unread: !notification.isRead }]"
+            @click="viewNotification(notification)"
+          >
+            <div class="notification-mini-icon">
+              <i :class="getNotificationIcon(notification.type)"></i>
+            </div>
+            <div class="notification-content">
+              <div class="notification-title">{{ notification.title }}</div>
+              <div class="notification-time">{{ formatTime(notification.createdAt) }}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mobile-notifications-footer">
+          <router-link to="/notifications" class="view-all-mobile" @click="showMobileNotificationDropdown = false">
+            View All Notifications
+          </router-link>
+        </div>
       </div>
 
       <!-- User dropdown menu -->
@@ -189,7 +241,8 @@
             <i class="fas fa-times"></i>
           </div>
           <div class="user-avatar">
-            <i class="fas fa-user"></i>
+            <img v-if="userAvatar" :src="userAvatar" alt="Profile" />
+            <i v-else class="fas fa-user"></i>
           </div>
           <span class="user-name">{{ userName }}</span>
           <span class="user-email" v-if="userEmail">{{ userEmail }}</span>
@@ -392,9 +445,14 @@ export default {
       console.log('Toggling user menu, current state:', showUserMenu.value);
       showUserMenu.value = !showUserMenu.value;
       
-      // Close notification dropdown if open
+      // Close notification dropdowns if open
       if (showNotificationDropdown.value) {
         showNotificationDropdown.value = false;
+      }
+      
+      // Close mobile notification dropdown if open
+      if (showMobileNotificationDropdown.value) {
+        showMobileNotificationDropdown.value = false;
       }
       
       // If opening the menu on mobile, ensure it's visible
@@ -603,7 +661,7 @@ export default {
       if (showUserMenu.value) {
         // For desktop dropdown
         if (!event.target.closest('.user-profile') && !isMobile.value) {
-        showUserMenu.value = false;
+          showUserMenu.value = false;
         }
         
         // For mobile dropdown
@@ -615,6 +673,12 @@ export default {
       
       if (showNotificationDropdown.value && notificationRef.value && !notificationRef.value.contains(event.target)) {
         showNotificationDropdown.value = false;
+      }
+      
+      // Handle mobile notification dropdown
+      if (showMobileNotificationDropdown.value && !event.target.closest('.mobile-notification-icon') && 
+          !event.target.closest('.mobile-notifications-dropdown')) {
+        showMobileNotificationDropdown.value = false;
       }
     };
     
@@ -639,12 +703,12 @@ export default {
             const response = await clientService.getClientProfile();
             if (response.success) {
               const userData = response.data;
-              userName.value = `${userData.user.firstName} ${userData.user.lastName}`;
-              userEmail.value = userData.user.email;
+              userName.value = `${userData.firstName} ${userData.lastName}`;
+              userEmail.value = userData.email;
               
               // Handle profile picture
-              if (userData.user.profilePicture) {
-                userAvatar.value = getFileUrl(userData.user.profilePicture);
+              if (userData.profilePicture) {
+                userAvatar.value = getFileUrl(userData.profilePicture);
               }
             }
           } else if (userRole.value === 'PROVIDER') {
@@ -707,6 +771,29 @@ export default {
       }
     });
     
+    // Mobile specific notification state
+    const showMobileNotificationDropdown = ref(false);
+
+    // Toggle mobile notification dropdown
+    const toggleMobileNotificationDropdown = () => {
+      showMobileNotificationDropdown.value = !showMobileNotificationDropdown.value;
+      
+      // Close user menu if open
+      if (showUserMenu.value) {
+        showUserMenu.value = false;
+      }
+      
+      // Add/remove body class for overlay
+      if (showMobileNotificationDropdown.value) {
+        document.body.classList.add('has-mobile-dropdown');
+        window.scrollTo(0, 0);
+        // Fetch recent notifications
+        fetchRecentNotifications();
+      } else {
+        document.body.classList.remove('has-mobile-dropdown');
+      }
+    };
+    
     return {
       isMobile,
       showUserMenu,
@@ -732,7 +819,11 @@ export default {
       viewNotification,
       getFileUrl,
       isRouteActive,
-      mobileDropdownRef
+      mobileDropdownRef,
+      
+      // Mobile notification related
+      showMobileNotificationDropdown,
+      toggleMobileNotificationDropdown
     };
   }
 };
@@ -922,6 +1013,27 @@ export default {
   color: #757575;
   margin-right: 12px;
   font-size: 20px;
+  overflow: hidden;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-avatar-small {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 8px;
+}
+
+.user-avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .dropdown-item {
@@ -1210,65 +1322,104 @@ export default {
   height: 75px; /* Increased for 90px navbar */
 }
 
-.mobile-profile-icon {
-  width: 60px; /* Increased for 90px navbar */
-  height: 60px; /* Increased for 90px navbar */
+.mobile-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Clean, modern notification icon */
+.mobile-notification-icon {
+  position: relative;
+  cursor: pointer;
+  width: 42px;
+  height: 42px;
+  background-color: rgba(255, 255, 255, 0.25);
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.mobile-notification-icon:active {
+  transform: scale(0.95);
+}
+
+.mobile-notification-icon i {
+  font-size: 20px;
+  color: white;
+}
+
+.mobile-notification-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background-color: #ff5252;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+  border: 2px solid white;
+}
+
+/* Clean, modern profile icon */
+.mobile-profile-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.25);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 30px; /* Increased for 90px navbar */
+  font-size: 24px;
   color: white;
   cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  overflow: hidden;
 }
 
-/* Mobile dropdown menu */
-.mobile-dropdown-menu {
-  display: flex !important;
-  flex-direction: column;
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  width: 85% !important;
-  max-width: 340px !important;
-  max-height: 80vh !important;
-  background-color: white !important;
-  z-index: 9999 !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
-  border-radius: 15px !important;
-  overflow: hidden !important;
-  animation: mobileDropdownFadeIn 0.3s ease forwards;
+.mobile-profile-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* Add overlay background for mobile dropdown */
-.mobile-dropdown-menu::before {
-  content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: -1;
+.mobile-profile-icon:active {
+  transform: scale(0.95);
 }
 
-@keyframes mobileDropdownFadeIn {
+/* Mobile notification dropdown styles */
+.mobile-notifications-dropdown {
+  position: absolute;
+  top: 90px;
+  left: 0;
+  right: 0;
+  width: 92%;
+  max-width: none;
+  max-height: 80vh;
+  margin: 0 auto;
+  background-color: white;
+  z-index: 1000;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+  animation: slideInDown 0.3s ease;
+  transform: none;
+}
+
+@keyframes slideInDown {
   from {
     opacity: 0;
-    transform: translate(-50%, -45%) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-@keyframes itemSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
+    transform: translateY(-20px);
   }
   to {
     opacity: 1;
@@ -1276,152 +1427,219 @@ export default {
   }
 }
 
-/* Mobile dropdown header */
-.mobile-dropdown-menu .dropdown-header {
-  background: #00C853;
-  color: white;
-  display: flex;
-    flex-direction: column;
-  align-items: center;
-  text-align: center;
-  position: relative;
-  padding: 30px 15px 20px;
+.mobile-notifications-dropdown::before {
+  content: none;
 }
 
-/* Dropdown items container */
-.mobile-dropdown-menu .dropdown-items {
+.mobile-notifications-header {
   display: flex;
-  flex-direction: column;
-  overflow-y: auto;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
   background-color: white;
+  border-bottom: 1px solid #eaeaea;
 }
 
-/* Each dropdown item */
-.mobile-dropdown-menu .dropdown-item {
+.mobile-notifications-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mobile-notifications-close {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
-  padding: 16px 20px;
-  color: #333;
-  text-decoration: none;
-  position: relative;
-  transition: all 0.2s ease;
-  border-bottom: 1px solid #e0e0e0;
-  animation: itemSlideIn 0.3s ease forwards;
-  opacity: 0;
+  justify-content: center;
+  color: #777;
+  border-radius: 50%;
+  background-color: transparent;
+  cursor: pointer;
 }
 
-.mobile-dropdown-menu .dropdown-item:hover,
-.mobile-dropdown-menu .dropdown-item:active {
-  background-color: #f1fffa;
+.mobile-notifications-close:active {
+  background-color: #f5f5f5;
 }
 
-.mobile-dropdown-menu .dropdown-divider {
-  height: 1px;
-  background-color: #e0e0e0;
-    margin: 0;
-  }
-  
-.mobile-dropdown-menu .item-icon {
-  width: 40px;
-  height: 40px;
+.mobile-no-notifications {
+  padding: 30px 20px;
+  text-align: center;
+  color: #777;
+}
+
+.mobile-recent-notifications {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.mobile-notification-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.mobile-notification-item:active {
+  background-color: #f8f8f8;
+}
+
+.mobile-notification-item.unread {
+  background-color: #f0f8ff;
+}
+
+.mobile-notification-item .notification-mini-icon {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background-color: #e8f5e9;
   color: #00C853;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.mobile-notification-item.unread .notification-mini-icon {
+  background-color: #00C853;
+  color: white;
+}
+
+.mobile-notifications-footer {
+  padding: 15px;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #f0f0f0;
+  background-color: #fafafa;
+}
+
+.view-all-mobile {
+  color: #00A046;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+/* Mobile dropdown menu */
+.mobile-dropdown-menu {
+  position: absolute;
+  top: 90px;
+  left: 0;
+  right: 0;
+  width: 92%;
+  margin: 0 auto;
+  background-color: white;
+  z-index: 1000;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+  animation: slideInDown 0.3s ease;
+  transform: none;
+}
+
+.mobile-dropdown-menu::before {
+  content: none;
+}
+
+.mobile-dropdown-menu .dropdown-header {
+  padding: 20px;
+  background-color: #00C853;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.mobile-dropdown-menu .dropdown-close {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+}
+
+.mobile-dropdown-menu .user-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: white;
+  color: #00C853;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 10px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.mobile-dropdown-menu .dropdown-items {
+  padding: 8px 0;
+}
+
+.mobile-dropdown-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  color: #333;
+  text-decoration: none;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.mobile-dropdown-menu .dropdown-item:active {
+  background-color: #f8f8f8;
+}
+
+.mobile-dropdown-menu .item-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
   margin-right: 15px;
   flex-shrink: 0;
 }
 
 .mobile-dropdown-menu .item-content {
   flex: 1;
-  display: flex;
-  flex-direction: column;
 }
 
 .mobile-dropdown-menu .item-title {
   font-size: 16px;
   font-weight: 500;
-  color: #222;
+  color: #333;
+  margin-bottom: 3px;
 }
 
 .mobile-dropdown-menu .item-subtitle {
   font-size: 13px;
-  color: #00C853;
+  color: #777;
 }
 
-/* Logout specific styling */
 .mobile-dropdown-menu .logout .item-icon {
-  background-color: #ffebee;
   color: #f44336;
+  background-color: #ffebee;
 }
 
 .mobile-dropdown-menu .logout .item-title {
   color: #f44336;
 }
 
-/* Bottom navbar */
-.mobile-bottom-navbar {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background: linear-gradient(to right, #00C853, #009688);
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 90px; /* Increased to 90px */
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 1050;
-}
-
-.mobile-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  color: rgba(255, 255, 255, 0.8);
-  padding: 12px; /* Increased for 90px navbar */
-  transition: all 0.2s ease;
-  flex: 1;
-}
-
-.mobile-nav-item .icon {
-  font-size: 32px; /* Increased for 90px navbar */
-  height: 42px; /* Increased for 90px navbar */
-  width: 42px; /* Increased for 90px navbar */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px; /* Increased for 90px navbar */
-  background-color: transparent;
-}
-
-.mobile-nav-item span {
-  font-size: 14px; /* Increased for 90px navbar */
-  font-weight: 500;
-}
-
-.mobile-nav-item.active {
-  color: white;
-  position: relative;
-}
-
-.mobile-nav-item.active::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 25%;
-  width: 50%;
-  height: 3px;
-  background-color: white;
-  border-radius: 3px;
-}
-
-/* Ensure content doesn't get hidden */
 @media (max-width: 767px) {
   /* Global CSS reset for all elements */
   * {
@@ -1436,13 +1654,13 @@ export default {
   
   body {
     padding-top: 0 !important;
-    padding-bottom: 90px !important; /* Updated to match 90px navbar height */
+    padding-bottom: 90px !important;
   }
   
   /* Add a global style for all elements that need to be pushed down */
   .view, .page, .content-view, main, section, article, .container, .content {
-    margin-top: 90px !important; /* Updated to match 90px navbar height */
-    padding-top: 15px !important; /* Increased padding */
+    margin-top: 90px !important;
+    padding-top: 15px !important;
   }
 
   /* Content fixes */
@@ -1454,14 +1672,14 @@ export default {
   .app-content,
   .page-content,
   .main-content {
-    margin-top: 90px !important; /* Updated to match 90px navbar height */
-    padding-top: 15px !important; /* Increased padding */
+    margin-top: 90px !important;
+    padding-top: 15px !important;
   }
   
   /* Force the spacer to be visible */
   .mobile-top-spacer {
     display: block !important;
-    min-height: 90px !important; /* Updated to match 90px navbar height */
+    min-height: 90px !important;
   }
   
   .navigation-container {
@@ -1472,114 +1690,91 @@ export default {
   .mobile-nav-layout {
     display: block;
   }
-
-  /* Ensure dropdown is visible on mobile */
-  .mobile-dropdown-menu {
-    display: flex !important;
-    flex-direction: column;
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: 85% !important;
-    max-width: 320px !important;
-    max-height: 80vh !important;
-    background-color: white !important;
-    z-index: 9999 !important;
+  
+  /* Make sure the mobile top navbar has the highest z-index */
+  .mobile-top-navbar {
+    z-index: 1050 !important;
   }
   
-  /* Make header more visible */
-  .mobile-dropdown-menu .dropdown-header {
-    background-color: #00C853 !important;
-    padding: 25px 15px !important;
-  }
-  
-  /* More obvious close button */
-  .mobile-dropdown-menu .dropdown-close {
-    width: 36px !important;
-    height: 36px !important;
-    background-color: rgba(255,255,255,0.3) !important;
-    right: 12px !important;
-    top: 12px !important;
-    font-size: 20px !important;
-  }
-  
-  /* Add bottom border to modal overlay */
-  body.has-mobile-dropdown::after {
-    content: "";
+  .mobile-bottom-navbar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: linear-gradient(to right, #00C853, #009688);
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 20px;
-    background-color: #00C853;
-    z-index: 9998;
+    height: 90px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1050 !important;
   }
-}
-
-/* Target common container classes to ensure padding */
-.container, 
-.content-wrapper, 
-.page-container,
-.booking-list,
-.card,
-.main-content {
-  margin-bottom: var(--mobile-nav-height) !important;
-  padding-bottom: 20px !important;
-}
-
-/* Add a global style for all elements that need to be pushed down */
-.view, .page, .content-view, main, section, article, .container, .content {
-  margin-top: 90px !important; /* Updated to match 90px navbar height */
-  padding-top: 15px !important; /* Increased padding */
-}
-
-/* Make sure the mobile top navbar has the highest z-index */
-.mobile-top-navbar {
-  z-index: 1050 !important;
-}
-
-.mobile-bottom-navbar {
-  z-index: 1050 !important;
-}
-
-.mobile-dropdown-menu .user-avatar {
-  width: 60px;
-  height: 60px;
-  background-color: white;
-  color: #00C853;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  margin-bottom: 10px;
-}
-
-.mobile-dropdown-menu .user-name {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 3px;
-}
-
-.mobile-dropdown-menu .user-email {
-  font-size: 13px;
-  opacity: 0.9;
-}
-
-.mobile-dropdown-menu .dropdown-close {
-  position: absolute;
-  right: 15px;
-  top: 15px;
-  width: 32px;
-  height: 32px;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
+  
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 12px;
+    transition: all 0.2s ease;
+    flex: 1;
+  }
+  
+  .mobile-nav-item .icon {
+    font-size: 28px;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 6px;
+    background-color: transparent;
+  }
+  
+  .mobile-nav-item span {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  
+  .mobile-nav-item.active {
+    color: white;
+    position: relative;
+  }
+  
+  .mobile-nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 25%;
+    width: 50%;
+    height: 3px;
+    background-color: white;
+    border-radius: 3px;
+  }
+  
+  /* Add overlay for dropdowns when active */
+  body.has-mobile-dropdown::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 900;
+  }
+  
+  /* Target common container classes to ensure padding */
+  .container, 
+  .content-wrapper, 
+  .page-container,
+  .booking-list,
+  .card,
+  .main-content {
+    margin-bottom: var(--mobile-nav-height) !important;
+    padding-bottom: 20px !important;
+  }
 }
 </style>

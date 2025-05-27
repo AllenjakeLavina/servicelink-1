@@ -9,9 +9,33 @@
         
         <div v-if="!isEditingProfile" class="profile-info">
           <div class="profile-header">
-            <div class="profile-picture">
-              <img v-if="user.profilePicture" :src="user.profilePicture" alt="Profile Picture" />
-              <div v-else class="profile-initials">{{ getUserInitials }}</div>
+            <div class="profile-picture-container">
+              <div v-if="user.profilePicture" class="profile-picture">
+                <img :src="getFullFileUrl(user.profilePicture)" alt="Profile Picture" />
+              </div>
+              <div v-else class="profile-picture placeholder-img">
+                <div class="profile-initials">{{ getUserInitials }}</div>
+              </div>
+              
+              <!-- Add upload overlay and functionality -->
+              <div class="profile-picture-overlay" @click="triggerFileUpload">
+                <i class="fas fa-camera"></i>
+                <span>Change Photo</span>
+              </div>
+              
+              <!-- Hidden file input -->
+              <input 
+                type="file" 
+                ref="profileImageInput" 
+                @change="handleProfileImageChange" 
+                accept="image/*" 
+                class="hidden-input" 
+              />
+              
+              <!-- Upload progress indicator -->
+              <div v-if="uploadingProfileImage" class="upload-progress">
+                <div class="spinner"></div>
+              </div>
             </div>
             <div class="profile-name">
               <h3>{{ user.firstName }} {{ user.lastName }}</h3>
@@ -253,6 +277,7 @@
 <script>
 import { ref, reactive, onMounted, computed } from 'vue';
 import { clientService } from '../../services/apiService';
+import apiService from '../../services/apiService';
 
 export default {
   name: 'ClientProfile',
@@ -264,6 +289,10 @@ export default {
     const error = ref(null);
     const isEditingProfile = ref(false);
     const isSubmitting = ref(false);
+    
+    // Profile image upload state
+    const profileImageInput = ref(null);
+    const uploadingProfileImage = ref(false);
     
     // Address state
     const showAddAddressForm = ref(false);
@@ -333,6 +362,62 @@ export default {
       } finally {
         loading.value = false;
       }
+    };
+    
+    // Profile image upload functions
+    const triggerFileUpload = () => {
+      profileImageInput.value.click();
+    };
+
+    const handleProfileImageChange = async (event) => {
+      const file = event.target.files[0];
+      console.log('File selected:', file);
+      
+      if (!file) {
+        console.error('No file selected');
+        return;
+      }
+      
+      // Validate file type
+      if (!file.type.match('image.*')) {
+        error.value = 'Please select an image file';
+        console.error('Invalid file type:', file.type);
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        error.value = 'Image must be less than 5MB';
+        console.error('File too large:', file.size);
+        return;
+      }
+      
+      try {
+        uploadingProfileImage.value = true;
+        error.value = null;
+        
+        // Use the uploadProfilePicture service
+        const response = await apiService.uploadProfilePicture(file);
+        
+        if (response.success) {
+          // Update local user data with the response
+          user.value = response.data;
+          console.log('Profile picture updated successfully');
+        } else {
+          throw new Error(response.message || 'Failed to update profile picture');
+        }
+      } catch (err) {
+        console.error('Error in profile image upload:', err);
+        error.value = err.message || 'Failed to upload profile picture';
+      } finally {
+        uploadingProfileImage.value = false;
+        event.target.value = '';
+      }
+    };
+
+    // Helper function to get full file URL
+    const getFullFileUrl = (fileUrl) => {
+      return apiService.getFileUrl(fileUrl);
     };
     
     const startEditProfile = () => {
@@ -552,7 +637,13 @@ export default {
       deleteAddress,
       confirmDeleteAddress,
       setDefaultAddress,
-      formatAddressType
+      formatAddressType,
+      // Profile image upload
+      profileImageInput,
+      uploadingProfileImage,
+      triggerFileUpload,
+      handleProfileImageChange,
+      getFullFileUrl
     };
   }
 };
@@ -597,12 +688,19 @@ h2 {
   align-items: center;
 }
 
-.profile-picture {
+.profile-picture-container {
+  position: relative;
   width: 80px;
   height: 80px;
   border-radius: 50%;
   overflow: hidden;
   background-color: #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.profile-picture {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -614,10 +712,78 @@ h2 {
   object-fit: cover;
 }
 
+.placeholder-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e0e0e0;
+}
+
 .profile-initials {
   font-size: 32px;
   font-weight: bold;
   color: #555;
+}
+
+.profile-picture-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s;
+  cursor: pointer;
+}
+
+.profile-picture-container:hover .profile-picture-overlay {
+  opacity: 1;
+}
+
+.profile-picture-overlay i {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.profile-picture-overlay span {
+  font-size: 11px;
+  text-align: center;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.upload-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-progress .spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .profile-name h3 {
