@@ -92,14 +92,14 @@
             </button>
 
             <button 
-              v-if="booking.status === 'CONFIRMED' && booking.payment && booking.payment.status === 'PENDING'"
+              v-if="booking.status === 'COMPLETED' && booking.payment && booking.payment.status === 'PENDING'"
               class="btn btn-payment" 
               @click="confirmMarkPaymentCompleted(booking)">
               Mark Payment Received
             </button>
             
             <button
-              v-if="booking.payment && booking.payment.paymentProofUrl"
+              v-if="booking.status === 'COMPLETED' && booking.payment && booking.payment.paymentProofUrl"
               class="btn btn-view-proof"
               @click="viewPaymentProof(booking)">
               View Payment Proof
@@ -547,7 +547,7 @@ export default {
 
     // View booking details
     const viewBookingDetails = (bookingId) => {
-      router.push(`/provider/bookings/${bookingId}`);
+      router.push(`/provider/booking/${bookingId}`);
     };
 
     // Show accept booking confirmation

@@ -12,9 +12,8 @@ import ClientProfile from '../components/client/clientProfile.vue';
 import ClientServices from '../components/client/clientServices.vue';
 import ClientBookings from '../components/client/clientBookings.vue';
 import ClientBookingDetails from '../components/client/clientBookingDetails.vue';
-
-
 import ProviderBookings from '../components/provider/providerBookings.vue';
+import ProviderBookingDetails from '../components/provider/providerBookingDetails.vue';
 import message from '../components/shared/message.vue';
 
 const routes = [
@@ -67,6 +66,12 @@ const routes = [
     meta: { requiresAuth: true, roles: ['PROVIDER'] }
   },
   {
+    path: '/provider/booking/:bookingId',
+    name: 'ProviderBookingDetails',
+    component: ProviderBookingDetails,
+    meta: { requiresAuth: true, roles: ['PROVIDER'] }
+  },
+  {
     path: '/client/profile',
     name: 'ClientProfile',
     component: ClientProfile,
@@ -90,7 +95,6 @@ const routes = [
     component: ClientBookingDetails,
     meta: { requiresAuth: true, roles: ['CLIENT'] }
   },
- 
   {
     path: '/notifications',
     name: 'Notifications',

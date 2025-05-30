@@ -4,6 +4,8 @@
     <div :class="{ 'content-with-nav': showNavigation }">
       <router-view />
     </div>
+    <PWAUpdateNotification />
+    <PWAInstallPrompt />
   </div>
 </template>
 
@@ -11,11 +13,15 @@
 import Navigation from './components/Navigation.vue';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import PWAUpdateNotification from './components/shared/PWAUpdateNotification.vue'
+import PWAInstallPrompt from './components/shared/PWAInstallPrompt.vue'
 
 export default {
   name: 'App',
   components: {
-    Navigation
+    Navigation,
+    PWAUpdateNotification,
+    PWAInstallPrompt
   },
   setup() {
     const route = useRoute();

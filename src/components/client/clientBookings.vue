@@ -71,7 +71,7 @@
             </button>
             
             <button 
-              v-if="booking.status === 'PENDING' && !booking.payment"
+              v-if="booking.status === 'COMPLETED' && !booking.payment"
               class="btn btn-payment" 
               @click="openPaymentModal(booking)">
               Process Payment
