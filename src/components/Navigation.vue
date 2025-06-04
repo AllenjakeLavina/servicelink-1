@@ -14,13 +14,13 @@
         <div class="nav-links">
           <!-- Client links -->
           <template v-if="userRole === 'CLIENT'">
+            <router-link to="/client/services" class="nav-item">
+              <div class="icon"><i class="fas fa-concierge-bell"></i></div>
+              <span>Services</span>
+            </router-link>
             <router-link to="/client/bookings" class="nav-item">
               <div class="icon"><i class="fas fa-calendar-alt"></i></div>
               <span>Bookings</span>
-            </router-link>
-            <router-link to="/client/services" class="nav-item">
-              <div class="icon"><i class="fas fa-concierge-bell"></i></div>
-              <span>My Services</span>
             </router-link>
             <router-link to="/messages" class="nav-item">
               <div class="icon"><i class="fas fa-envelope"></i></div>
@@ -30,13 +30,13 @@
           
           <!-- Provider links -->
           <template v-if="userRole === 'PROVIDER'">
-            <router-link to="/provider/bookings" class="nav-item">
-              <div class="icon"><i class="fas fa-calendar-alt"></i></div>
-              <span>Bookings</span>
-            </router-link>
             <router-link to="/provider/services" class="nav-item">
               <div class="icon"><i class="fas fa-briefcase"></i></div>
               <span>My Services</span>
+            </router-link>
+            <router-link to="/provider/bookings" class="nav-item">
+              <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+              <span>Bookings</span>
             </router-link>
             <router-link to="/messages" class="nav-item">
               <div class="icon"><i class="fas fa-envelope"></i></div>
@@ -329,13 +329,13 @@
     <div class="mobile-bottom-navbar">
       <!-- Client links -->
       <template v-if="userRole === 'CLIENT'">
-        <router-link to="/client/bookings" class="mobile-nav-item" :class="{ 'active': isRouteActive('client/bookings') }">
-          <div class="icon"><i class="fas fa-calendar-alt"></i></div>
-          <span>Bookings</span>
-        </router-link>
         <router-link to="/client/services" class="mobile-nav-item" :class="{ 'active': isRouteActive('client/services') }">
           <div class="icon"><i class="fas fa-concierge-bell"></i></div>
           <span>Services</span>
+        </router-link>
+        <router-link to="/client/bookings" class="mobile-nav-item" :class="{ 'active': isRouteActive('client/bookings') }">
+          <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+          <span>Bookings</span>
         </router-link>
         <router-link to="/messages" class="mobile-nav-item" :class="{ 'active': isRouteActive('messages') }">
           <div class="icon"><i class="fas fa-envelope"></i></div>
@@ -345,13 +345,13 @@
       
       <!-- Provider links -->
       <template v-if="userRole === 'PROVIDER'">
-        <router-link to="/provider/bookings" class="mobile-nav-item" :class="{ 'active': isRouteActive('provider/bookings') }">
-          <div class="icon"><i class="fas fa-calendar-alt"></i></div>
-          <span>Bookings</span>
-        </router-link>
         <router-link to="/provider/services" class="mobile-nav-item" :class="{ 'active': isRouteActive('provider/services') }">
           <div class="icon"><i class="fas fa-briefcase"></i></div>
           <span>Services</span>
+        </router-link>
+        <router-link to="/provider/bookings" class="mobile-nav-item" :class="{ 'active': isRouteActive('provider/bookings') }">
+          <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+          <span>Bookings</span>
         </router-link>
         <router-link to="/messages" class="mobile-nav-item" :class="{ 'active': isRouteActive('messages') }">
           <div class="icon"><i class="fas fa-envelope"></i></div>
@@ -540,8 +540,8 @@ export default {
           notificationCount.value = result.data.count || 0;
           console.log('Updated notification count to:', notificationCount.value);
         } else {
-          console.error('Notification count API returned success: false');
-          throw new Error(result.message || 'Failed to fetch notification count');
+          console.warn('Notification count API returned success: false -', result.message);
+          notificationCount.value = 0;
         }
       } catch (error) {
         console.error('Error fetching notification count:', error);
@@ -563,8 +563,8 @@ export default {
           recentNotifications.value = result.data.notifications || [];
           console.log('Updated recent notifications, count:', recentNotifications.value.length);
         } else {
-          console.error('Recent notifications API returned success: false');
-          throw new Error(result.message || 'Failed to fetch notifications');
+          console.warn('Recent notifications API returned success: false -', result.message);
+          recentNotifications.value = [];
         }
       } catch (error) {
         console.error('Error fetching recent notifications:', error);
@@ -595,6 +595,7 @@ export default {
         
         // Close dropdown
         showNotificationDropdown.value = false;
+        showMobileNotificationDropdown.value = false;
         
         // Navigate based on notification type
         if (notification.data) {
@@ -607,11 +608,13 @@ export default {
               case 'BOOKING_REQUEST':
               case 'BOOKING_CONFIRMED':
               case 'BOOKING_CANCELLED':
+              case 'SERVICE_COMPLETED':
+              case 'PAYMENT_RECEIVED':
                 if (data.bookingId) {
                   if (userRole.value === 'PROVIDER') {
-                    router.push(`/provider/bookings/${data.bookingId}`);
+                    router.push(`/provider/booking/${data.bookingId}`);
                   } else {
-                    router.push(`/client/bookings/${data.bookingId}`);
+                    router.push(`/client/booking/${data.bookingId}`);
                   }
                 }
                 break;

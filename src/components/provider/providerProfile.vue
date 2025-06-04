@@ -231,165 +231,172 @@
         </div>
       </div>
 
-      <!-- Skills Tab -->
-      <div v-show="activeTab === 'skills'" class="tab-content section">
+      <!-- Skills, Documents & Portfolio Tab -->
+      <div v-show="activeTab === 'skillsportfolio'" class="tab-content section">
         <div class="section-header">
-          <h2>Skills</h2>
-          <button v-if="!addingSkill" @click="toggleAddSkill" class="add-btn">
-            <i class="fas fa-plus"></i> Add Skill
-          </button>
+          <h2>Skills, Documents & Portfolio</h2>
         </div>
-        
-        <div v-if="addingSkill" class="add-section">
-          <form @submit.prevent="addSkill" class="add-form">
-            <div class="form-group">
-              <label>Skill Name:</label>
-              <input v-model="skillForm.skillName" required />
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="save-btn">Save</button>
-              <button type="button" class="cancel-btn" @click="toggleAddSkill">Cancel</button>
-            </div>
-          </form>
-        </div>
-        
-        <div v-if="profile.serviceProvider?.skills && profile.serviceProvider.skills.length > 0" class="skills-list">
-          <span v-for="skill in profile.serviceProvider.skills" :key="skill.id" class="skill-tag">{{ skill.name }}</span>
-        </div>
-        <div v-else-if="!addingSkill" class="no-data">
-          <p>No skills added yet.</p>
-          <p>Add skills to help clients find you and understand your expertise.</p>
-        </div>
-      </div>
 
-      <!-- Portfolio Tab -->
-      <div v-show="activeTab === 'portfolio'" class="tab-content section">
-        <div class="section-header">
-          <h2>Portfolio</h2>
-          <button v-if="!addingPortfolio" @click="toggleAddPortfolio" class="add-btn">
-            <i class="fas fa-plus"></i> Add Portfolio Item
-          </button>
+        <!-- Skills Section -->
+        <div class="subsection">
+          <div class="subsection-header">
+            <h3>Professional Skills</h3>
+            <button v-if="!addingSkill" @click="toggleAddSkill" class="add-btn">
+              <i class="fas fa-plus"></i> Add Skill
+            </button>
+          </div>
+          
+          <div v-if="addingSkill" class="add-section">
+            <form @submit.prevent="addSkill" class="add-form">
+              <div class="form-group">
+                <label>Skill Name:</label>
+                <input v-model="skillForm.skillName" required />
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="save-btn">Save</button>
+                <button type="button" class="cancel-btn" @click="toggleAddSkill">Cancel</button>
+              </div>
+            </form>
+          </div>
+          
+          <div v-if="profile.serviceProvider?.skills && profile.serviceProvider.skills.length > 0" class="skills-list">
+            <span v-for="skill in profile.serviceProvider.skills" :key="skill.id" class="skill-tag">{{ skill.name }}</span>
+          </div>
+          <div v-else-if="!addingSkill" class="no-data">
+            <p>No skills added yet.</p>
+            <p>Add skills to help clients find you and understand your expertise.</p>
+          </div>
         </div>
-        
-        <div v-if="addingPortfolio" class="add-section">
-          <form @submit.prevent="addPortfolioItem" class="add-form" enctype="multipart/form-data">
-            <div class="form-group">
-              <label>Title:</label>
-              <input v-model="portfolioForm.title" required />
+
+        <!-- Documents Section -->
+        <div class="subsection">
+          <div class="subsection-header">
+            <h3>Documents & Verification</h3>
+            <button v-if="!addingDocument" @click="toggleAddDocument" class="add-btn">
+              <i class="fas fa-plus"></i> Upload Document
+            </button>
+          </div>
+          
+          <div class="verification-status">
+            <p><strong>Verification Status:</strong> 
+              <span :class="verificationStatusClass">{{ verificationStatusText }}</span>
+            </p>
+          </div>
+          
+          <div v-if="addingDocument" class="add-section">
+            <form @submit.prevent="addDocument" class="add-form" enctype="multipart/form-data">
+              <div class="form-group">
+                <label>Document Title:</label>
+                <input v-model="documentForm.title" required />
+              </div>
+              <div class="form-group">
+                <label>Document Type:</label>
+                <select v-model="documentForm.type" required>
+                  <option value="ID">ID Document</option>
+                  <option value="CERTIFICATE">Certificate</option>
+                  <option value="LICENSE">License</option>
+                  <option value="RESUME">Resume</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>File:</label>
+                <input type="file" ref="fileInput" required />
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="save-btn">Upload</button>
+                <button type="button" class="cancel-btn" @click="toggleAddDocument">Cancel</button>
+              </div>
+            </form>
+          </div>
+          
+          <div v-if="profile.serviceProvider?.documents && profile.serviceProvider.documents.length > 0" class="documents-list">
+            <h4>Uploaded Documents</h4>
+            <div v-for="doc in profile.serviceProvider.documents" :key="doc.id" class="document-item">
+              <div class="document-info">
+                <div class="document-title">
+                  <strong>{{ doc.title }}</strong> ({{ doc.type }})
+                </div>
+                <span :class="doc.isVerified ? 'verified' : 'pending'">
+                  {{ doc.isVerified ? 'Verified' : 'Pending Verification' }}
+                </span>
+              </div>
+              <a @click.prevent="openFileModal(doc.fileUrl, doc.title, doc.type)" class="view-btn">View Document</a>
             </div>
-            <div class="form-group">
-              <label>Description:</label>
-              <textarea v-model="portfolioForm.description" rows="3"></textarea>
-            </div>
-            <div class="form-group">
-              <label>Project URL (optional):</label>
-              <input type="url" v-model="portfolioForm.projectUrl" placeholder="https://example.com" />
-            </div>
-            <div class="form-group">
-              <label>Images/Files (up to 5):</label>
-              <input type="file" multiple ref="portfolioFilesInput" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.txt" required />
-              <small class="form-hint">Select up to 5 files to showcase your work (images, PDFs, or documents)</small>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="save-btn">Save</button>
-              <button type="button" class="cancel-btn" @click="toggleAddPortfolio">Cancel</button>
-            </div>
-          </form>
+          </div>
+          <div v-else-if="!addingDocument" class="no-data">
+            <p>No documents uploaded yet.</p>
+            <p>Upload identity documents to complete the verification process.</p>
+          </div>
         </div>
-        
-        <div v-if="profile.serviceProvider?.portfolio && profile.serviceProvider.portfolio.length > 0" class="portfolio-grid">
-          <div v-for="item in profile.serviceProvider.portfolio" :key="item.id" class="portfolio-item">
-            <div class="portfolio-header">
-              <h3>{{ item.title }}</h3>
-              <a v-if="item.projectUrl" :href="item.projectUrl" target="_blank" class="project-link">
-                <i class="fas fa-external-link-alt"></i> View Project
-              </a>
-            </div>
-            <p v-if="item.description" class="portfolio-description">{{ item.description }}</p>
-            
-            <div class="portfolio-images">
-              <div v-if="item.files && item.files.length > 0" class="image-gallery">
-                <div v-for="file in item.files" :key="file.id" class="gallery-item" @click="openFileModal(file.fileUrl, item.title, file.fileType)">
-                  <!-- Handle image files -->
-                  <img v-if="isImageFile(file.fileUrl)" :src="getFullFileUrl(file.fileUrl)" :alt="item.title" />
-                  <!-- Handle document files -->
-                  <div v-else class="document-preview">
-                    <i :class="getFileIcon(file.fileUrl)"></i>
-                    <span>{{ getFileName(file.fileUrl) }}</span>
+
+        <!-- Portfolio Section -->
+        <div class="subsection">
+          <div class="subsection-header">
+            <h3>Portfolio</h3>
+            <button v-if="!addingPortfolio" @click="toggleAddPortfolio" class="add-btn">
+              <i class="fas fa-plus"></i> Add Portfolio Item
+            </button>
+          </div>
+          
+          <div v-if="addingPortfolio" class="add-section">
+            <form @submit.prevent="addPortfolioItem" class="add-form" enctype="multipart/form-data">
+              <div class="form-group">
+                <label>Title:</label>
+                <input v-model="portfolioForm.title" required />
+              </div>
+              <div class="form-group">
+                <label>Description:</label>
+                <textarea v-model="portfolioForm.description" rows="3"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Project URL (optional):</label>
+                <input type="url" v-model="portfolioForm.projectUrl" placeholder="https://example.com" />
+              </div>
+              <div class="form-group">
+                <label>Images/Files (up to 5):</label>
+                <input type="file" multiple ref="portfolioFilesInput" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.txt" required />
+                <small class="form-hint">Select up to 5 files to showcase your work (images, PDFs, or documents)</small>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="save-btn">Save</button>
+                <button type="button" class="cancel-btn" @click="toggleAddPortfolio">Cancel</button>
+              </div>
+            </form>
+          </div>
+          
+          <div v-if="profile.serviceProvider?.portfolio && profile.serviceProvider.portfolio.length > 0" class="portfolio-grid">
+            <div v-for="item in profile.serviceProvider.portfolio" :key="item.id" class="portfolio-item">
+              <div class="portfolio-header">
+                <h3>{{ item.title }}</h3>
+                <a v-if="item.projectUrl" :href="item.projectUrl" target="_blank" class="project-link">
+                  <i class="fas fa-external-link-alt"></i> View Project
+                </a>
+              </div>
+              <p v-if="item.description" class="portfolio-description">{{ item.description }}</p>
+              
+              <div class="portfolio-images">
+                <div v-if="item.files && item.files.length > 0" class="image-gallery">
+                  <div v-for="file in item.files" :key="file.id" class="gallery-item" @click="openFileModal(file.fileUrl, item.title, file.fileType)">
+                    <!-- Handle image files -->
+                    <img v-if="isImageFile(file.fileUrl)" :src="getFullFileUrl(file.fileUrl)" :alt="item.title" />
+                    <!-- Handle document files -->
+                    <div v-else class="document-preview">
+                      <i :class="getFileIcon(file.fileUrl)"></i>
+                      <span>{{ getFileName(file.fileUrl) }}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div v-else class="no-images">
-                <p>No files available for this project</p>
+                <div v-else class="no-images">
+                  <p>No files available for this project</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div v-else-if="!addingPortfolio" class="no-data">
-          <p>No portfolio items added yet.</p>
-          <p>Add portfolio items to showcase your work and projects.</p>
-        </div>
-      </div>
-
-      <!-- Documents Tab -->
-      <div v-show="activeTab === 'documents'" class="tab-content section">
-        <div class="section-header">
-          <h2>Documents & Verification</h2>
-          <button v-if="!addingDocument" @click="toggleAddDocument" class="add-btn">
-            <i class="fas fa-plus"></i> Upload Document
-          </button>
-        </div>
-        
-        <div class="verification-status">
-          <p><strong>Verification Status:</strong> 
-            <span :class="verificationStatusClass">{{ verificationStatusText }}</span>
-          </p>
-        </div>
-        
-        <div v-if="addingDocument" class="add-section">
-          <form @submit.prevent="addDocument" class="add-form" enctype="multipart/form-data">
-            <div class="form-group">
-              <label>Document Title:</label>
-              <input v-model="documentForm.title" required />
-            </div>
-            <div class="form-group">
-              <label>Document Type:</label>
-              <select v-model="documentForm.type" required>
-                <option value="ID">ID Document</option>
-                <option value="CERTIFICATE">Certificate</option>
-                <option value="LICENSE">License</option>
-                <option value="RESUME">Resume</option>
-                <option value="OTHER">Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>File:</label>
-              <input type="file" ref="fileInput" required />
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="save-btn">Upload</button>
-              <button type="button" class="cancel-btn" @click="toggleAddDocument">Cancel</button>
-            </div>
-          </form>
-        </div>
-        
-        <div v-if="profile.serviceProvider?.documents && profile.serviceProvider.documents.length > 0" class="documents-list">
-          <h3>Uploaded Documents</h3>
-          <div v-for="doc in profile.serviceProvider.documents" :key="doc.id" class="document-item">
-            <div class="document-info">
-              <div class="document-title">
-                <strong>{{ doc.title }}</strong> ({{ doc.type }})
-              </div>
-              <span :class="doc.isVerified ? 'verified' : 'pending'">
-                {{ doc.isVerified ? 'Verified' : 'Pending Verification' }}
-              </span>
-            </div>
-            <a @click.prevent="openFileModal(doc.fileUrl, doc.title, doc.type)" class="view-btn">View Document</a>
+          <div v-else-if="!addingPortfolio" class="no-data">
+            <p>No portfolio items added yet.</p>
+            <p>Add portfolio items to showcase your work and projects.</p>
           </div>
-        </div>
-        <div v-else-if="!addingDocument" class="no-data">
-          <p>No documents uploaded yet.</p>
-          <p>Upload identity documents to complete the verification process.</p>
         </div>
       </div>
 
@@ -446,9 +453,7 @@ export default {
       { id: 'personal', name: 'Personal Info', icon: 'fas fa-user' },
       { id: 'experience', name: 'Work Experience', icon: 'fas fa-briefcase' },
       { id: 'education', name: 'Education', icon: 'fas fa-graduation-cap' },
-      { id: 'skills', name: 'Skills', icon: 'fas fa-tools' },
-      { id: 'portfolio', name: 'Portfolio', icon: 'fas fa-images' },
-      { id: 'documents', name: 'Documents', icon: 'fas fa-file-alt' }
+      { id: 'skillsportfolio', name: 'Skills & Portfolio', icon: 'fas fa-tools' },
     ];
 
     // UI state
@@ -977,134 +982,183 @@ export default {
 </script>
 
 <style scoped>
+/* Base Styles */
 .provider-profile {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 30px;
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #f7f9fc;
+  min-height: 100vh;
+  color: #2d3748;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 h1 {
   text-align: center;
-  color: #2c3e50;
+  color: #4a5568;
   margin-bottom: 30px;
-  font-weight: 600;
-  font-size: 2.2rem;
+  font-weight: 800;
+  font-size: 2.6rem;
+  position: relative;
+  padding-bottom: 0;
+  letter-spacing: -0.02em;
+}
+
+h1::after {
+  display: none;
 }
 
 h2 {
-  color: #2c3e50;
-  font-weight: 500;
+  color: #4a5568;
+  font-weight: 700;
+  font-size: 1.8rem;
   margin-top: 0;
-  font-size: 1.6rem;
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 10px;
+  margin-bottom: 20px;
+  position: relative;
+  display: inline-block;
+  letter-spacing: -0.01em;
+}
+
+h2::after {
+  display: none;
 }
 
 h3 {
-  color: #34495e;
-  margin-bottom: 8px;
-  font-weight: 500;
-  font-size: 1.2rem;
+  color: #4a5568;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
 }
 
 /* Profile Tabs */
 .profile-tabs {
   display: flex;
-  gap: 2px;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #f0f0f0;
+  gap: 10px;
+  margin-bottom: 40px;
+  border-bottom: none;
   overflow-x: auto;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 2px;
-}
-
-.profile-tabs::-webkit-scrollbar {
-  height: 5px;
-}
-
-.profile-tabs::-webkit-scrollbar-track {
-  background: #f8f8f8;
-}
-
-.profile-tabs::-webkit-scrollbar-thumb {
-  background-color: #ccc;
-  border-radius: 10px;
+  padding: 10px;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  justify-content: center;
 }
 
 .tab {
-  padding: 12px 20px;
+  padding: 14px 24px;
   cursor: pointer;
   transition: all 0.3s;
-  background-color: #f8f8f8;
-  border-radius: 8px 8px 0 0;
+  background-color: white;
+  border-radius: 16px;
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 500;
+  gap: 12px;
+  font-weight: 600;
   flex-shrink: 0;
-  box-shadow: 0 -2px 5px rgba(0,0,0,0.03);
-}
-
-.tab i {
-  font-size: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  color: #4a5568;
+  font-size: 0.95rem;
+  border: 1px solid #e2e8f0;
 }
 
 .tab:hover {
-  background-color: #e0f2f1;
-  color: #009688;
+  background-color: #f8fafc;
+  color: #4a5568;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .tab.active {
-  background-color: #009688;
+  background: #4f46e5;
   color: white;
-  font-weight: 500;
-  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+  font-weight: 600;
+  box-shadow: 0 8px 16px rgba(79, 70, 229, 0.15);
+  transform: translateY(-2px);
+  border-color: #4f46e5;
 }
 
-.tab-content {
-  display: block;
-  animation: fadeIn 0.5s;
+.tab i {
+  font-size: 18px;
+  color: #718096;
 }
 
+.tab.active i {
+  color: white;
+}
+
+/* Sections */
 .section {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-  padding: 25px;
-  margin-bottom: 30px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  padding: 35px;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+}
+
+.section::before {
+  display: none;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 15px;
+  border-bottom: 1px solid #edf2f7;
+  padding-bottom: 20px;
 }
 
-/* Profile Info */
 .profile-header {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 30px;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 40px;
   align-items: center;
+  position: relative;
+  padding: 40px;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
 }
 
 .profile-picture-container {
   position: relative;
-  width: 130px;
-  height: 130px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  border: 3px solid #fff;
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.15);
+  border: 4px solid white;
   flex-shrink: 0;
+  background-color: #f1f5f9;
+  transition: all 0.3s ease;
+}
+
+.profile-picture-container:hover {
+  transform: scale(1.03);
+  box-shadow: 0 15px 35px rgba(79, 70, 229, 0.2);
 }
 
 .profile-picture {
@@ -1119,165 +1173,210 @@ h3 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.profile-picture-container:hover img {
+  transform: scale(1.1);
 }
 
 .profile-details {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-top: 25px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  margin-top: 40px;
 }
 
 .detail-item {
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 12px;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 25px;
+  background: white;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.detail-item::before {
+  display: none;
 }
 
 .detail-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+}
+
+.detail-item h3 {
+  color: #4f46e5;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #edf2f7;
 }
 
 .bio-text {
   white-space: pre-line;
-  line-height: 1.6;
-  color: #555;
+  line-height: 1.7;
+  color: #444;
+  font-size: 1.02rem;
 }
 
+/* Buttons */
 .edit-btn, .add-btn {
-  background-color: #009688;
+  background: #4f46e5;
   color: white;
   border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
+  padding: 12px 22px;
+  border-radius: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-weight: 500;
-  transition: all 0.3s;
-  box-shadow: 0 2px 5px rgba(0,150,136,0.2);
+  gap: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  font-size: 0.95rem;
 }
 
 .edit-btn:hover, .add-btn:hover {
-  background-color: #00796b;
-  box-shadow: 0 4px 8px rgba(0,150,136,0.3);
-  transform: translateY(-2px);
+  background: #4338ca;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.2);
+}
+
+.save-btn {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  font-size: 1rem;
+}
+
+.save-btn:hover {
+  background: #4338ca;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.2);
+}
+
+.cancel-btn {
+  background: white;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  padding: 14px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.cancel-btn:hover {
+  background: #f8fafc;
+  color: #4f46e5;
+  border-color: #4f46e5;
+  transform: translateY(-3px);
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  position: relative;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #455a64;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #27ae60;
+  font-size: 0.95rem;
 }
 
 .form-group input, .form-group textarea, .form-group select {
   width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  transition: border 0.3s, box-shadow 0.3s;
+  padding: 14px 18px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  transition: all 0.3s ease;
   font-size: 1rem;
+  background-color: #f9f9f9;
+  color: #333;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
 }
 
 .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-  border-color: #009688;
-  box-shadow: 0 0 0 2px rgba(0,150,136,0.2);
+  border-color: #27ae60;
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.15);
   outline: none;
+  background-color: #fff;
 }
 
 .form-actions {
   display: flex;
-  gap: 12px;
-  margin-top: 25px;
-}
-
-.save-btn {
-  background-color: #2196F3;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s;
-  box-shadow: 0 2px 5px rgba(33,150,243,0.2);
-}
-
-.save-btn:hover {
-  background-color: #1976d2;
-  box-shadow: 0 4px 8px rgba(33,150,243,0.3);
-  transform: translateY(-2px);
-}
-
-.cancel-btn {
-  background-color: #f44336;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s;
-  box-shadow: 0 2px 5px rgba(244,67,54,0.2);
-}
-
-.cancel-btn:hover {
-  background-color: #d32f2f;
-  box-shadow: 0 4px 8px rgba(244,67,54,0.3);
-  transform: translateY(-2px);
+  gap: 15px;
+  margin-top: 35px;
+  justify-content: flex-end;
 }
 
 /* Experience and Education */
 .experience-list, .education-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 25px;
+  margin-top: 20px;
 }
 
 .experience-item, .education-item {
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 12px;
-  border-left: 4px solid #009688;
-  transition: transform 0.3s, box-shadow 0.3s;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  padding: 30px;
+  background: white;
+  border-radius: 16px;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.experience-item::before, .education-item::before {
+  display: none;
 }
 
 .experience-item:hover, .education-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.08);
 }
 
 .experience-header, .education-header {
-  margin-bottom: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #edf2f7;
 }
 
 .experience-company, .education-institution {
-  font-weight: 500;
-  color: #455a64;
-  font-size: 1.05rem;
-}
-
-.experience-dates, .education-dates, .education-field {
-  color: #78909c;
-  font-size: 0.9rem;
+  font-weight: 700;
+  color: #4f46e5;
+  font-size: 1.1rem;
   margin-top: 5px;
 }
 
+.experience-dates, .education-dates, .education-field {
+  color: #718096;
+  font-size: 0.9rem;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .experience-description {
-  margin-top: 12px;
+  margin-top: 15px;
   white-space: pre-line;
-  line-height: 1.5;
-  color: #555;
+  line-height: 1.6;
+  color: #4a5568;
+  font-size: 0.95rem;
 }
 
 /* Skills */
@@ -1285,23 +1384,27 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 20px;
+  margin: 20px 0 30px;
 }
 
 .skill-tag {
-  background-color: #e0f7fa;
-  color: #00838f;
-  padding: 10px 18px;
-  border-radius: 25px;
+  background: white;
+  color: #4a5568;
+  padding: 10px 20px;
+  border-radius: 10px;
   font-size: 0.95rem;
-  transition: all 0.3s;
-  box-shadow: 0 2px 5px rgba(0,131,143,0.1);
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  border: 1px solid #e2e8f0;
 }
 
 .skill-tag:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 5px 12px rgba(0,131,143,0.15);
-  background-color: #b2ebf2;
+  background: #4f46e5;
+  color: white;
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(79, 70, 229, 0.15);
+  border-color: #4f46e5;
 }
 
 /* Documents */
@@ -1309,20 +1412,26 @@ h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 12px;
-  margin-bottom: 15px;
-  border-left: 4px solid #2196F3;
-  transition: transform 0.3s, box-shadow 0.3s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 25px;
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  border: 1px solid #e2e8f0;
   flex-wrap: wrap;
   gap: 15px;
+  overflow: hidden;
+}
+
+.document-item::before {
+  display: none;
 }
 
 .document-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.08);
 }
 
 .document-info {
@@ -1331,101 +1440,139 @@ h3 {
 }
 
 .document-title {
-  margin-bottom: 5px;
-  font-weight: 500;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #4f46e5;
+  font-size: 1.1rem;
 }
 
 .view-btn {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #2196F3;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  background: #4f46e5;
   color: white;
-  border-radius: 8px;
+  border-radius: 10px;
   text-decoration: none;
   text-align: center;
-  transition: all 0.3s;
-  font-weight: 500;
-  box-shadow: 0 2px 5px rgba(33,150,243,0.2);
+  transition: all 0.3s ease;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
 }
 
 .view-btn:hover {
-  background-color: #1976d2;
-  box-shadow: 0 5px 12px rgba(33,150,243,0.25);
-  transform: translateY(-2px);
+  background: #4338ca;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.2);
+  transform: translateY(-3px);
+}
+
+.view-btn::before {
+  content: '\f06e';
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+}
+
+/* Verification Status */
+.verification-status {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 25px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  position: relative;
+  overflow: hidden;
+}
+
+.verification-status::before {
+  display: none;
+}
+
+.verification-status p {
+  margin: 0;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .verified {
-  color: #4caf50;
+  color: #10b981;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
+  padding: 5px 15px;
+  background-color: rgba(16, 185, 129, 0.1);
+  border-radius: 8px;
 }
 
 .verified:before {
   content: "✓";
   display: inline-block;
   font-size: 14px;
-  background: #4caf50;
+  background: #10b981;
   color: white;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   text-align: center;
-  line-height: 18px;
+  line-height: 22px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .pending {
-  color: #ff9800;
+  color: #f59e0b;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
+  padding: 5px 15px;
+  background-color: rgba(245, 158, 11, 0.1);
+  border-radius: 8px;
 }
 
 .pending:before {
-  content: "⌛";
-  display: inline-block;
+  content: "\f254";
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
   font-size: 14px;
-}
-
-.not-verified {
-  color: #f44336;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.not-verified:before {
-  content: "✕";
-  display: inline-block;
-  font-size: 14px;
-}
-
-.verification-status {
-  background-color: #f5f5f5;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  color: #f59e0b;
 }
 
 .no-data {
-  color: #78909c;
-  font-style: italic;
-  margin: 30px 0;
+  color: #777;
+  margin: 40px 0;
   text-align: center;
-  padding: 40px 20px;
-  background-color: #f9f9f9;
-  border-radius: 12px;
-  border: 1px dashed #ddd;
+  padding: 50px 30px;
+  background: linear-gradient(135deg, #f9f9f9, #f5f5f5);
+  border-radius: 18px;
+  border: 2px dashed rgba(39, 174, 96, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.no-data::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, rgba(39, 174, 96, 0.3), rgba(46, 204, 113, 0.3));
 }
 
 .no-data p:first-child {
-  font-size: 1.1rem;
-  margin-bottom: 10px;
-  font-weight: 500;
-  color: #455a64;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #27ae60;
+}
+
+.no-data p:last-child {
+  color: #555;
+  line-height: 1.6;
 }
 
 .placeholder-img {
@@ -1460,97 +1607,121 @@ h3 {
 /* Portfolio */
 .portfolio-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 30px;
+  margin-top: 20px;
 }
 
 .portfolio-item {
-  background-color: #fff;
-  border-radius: 12px;
+  background: white;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-  transition: transform 0.3s, box-shadow 0.3s;
-  border: 1px solid #f0f0f0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+  position: relative;
+}
+
+.portfolio-item::before {
+  display: none;
 }
 
 .portfolio-item:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
 }
 
 .portfolio-header {
-  padding: 20px;
+  padding: 25px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f0f0f0;
-  background-color: #fafafa;
+  border-bottom: 1px solid #edf2f7;
+  background: white;
 }
 
 .portfolio-header h3 {
   margin: 0;
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: #2c3e50;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #4f46e5;
 }
 
 .project-link {
-  color: #2196F3;
+  color: #4f46e5;
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 7px;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  padding: 8px 15px;
+  border-radius: 8px;
+  background-color: #f7f7ff;
+  border: 1px solid #e5e7eb;
 }
 
 .project-link:hover {
-  color: #1976d2;
-  text-decoration: underline;
+  background-color: #4f46e5;
+  color: white;
+  box-shadow: 0 5px 15px rgba(79, 70, 229, 0.2);
+  transform: translateY(-3px);
 }
 
 .portfolio-description {
-  padding: 15px 20px;
-  color: #607d8b;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  padding: 20px 25px;
+  color: #4a5568;
+  font-size: 1rem;
+  line-height: 1.7;
+  background-color: #f8fafc;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .portfolio-images {
-  padding: 0 20px 20px;
+  padding: 25px;
 }
 
 .image-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
 }
 
 .gallery-item {
-  height: 120px;
+  height: 150px;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
   position: relative;
+  border: 3px solid white;
+}
+
+.gallery-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, 
+    rgba(79, 70, 229, 0) 0%,
+    rgba(79, 70, 229, 0.8) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.gallery-item:hover::before {
+  opacity: 1;
 }
 
 .gallery-item:hover {
-  transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-}
-
-.gallery-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s;
-}
-
-.gallery-item:hover img {
-  transform: scale(1.1);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(79, 70, 229, 0.2);
 }
 
 .document-preview {
@@ -1618,127 +1789,162 @@ h3 {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(3px);
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease;
 }
 
 .modal-container {
   background-color: white;
-  border-radius: 12px;
+  border-radius: 18px;
   max-width: 90vw;
   width: 900px;
   max-height: 90vh;
   z-index: 1001;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  animation: modalFadeIn 0.3s ease-out;
+  animation: modalFadeIn 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid rgba(39, 174, 96, 0.1);
 }
 
 .modal-header {
-  padding: 15px 20px;
+  padding: 20px 25px;
+  border-bottom: 1px solid #f0f0f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f0f0f0;
-  background-color: #fafafa;
+  background: linear-gradient(135deg, #f9f9f9, #ffffff);
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
 }
 
 .modal-header h3 {
   margin: 0;
-  font-size: 1.3rem;
-  color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #27ae60;
 }
 
 .close-btn {
   background: transparent;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   cursor: pointer;
-  color: #78909c;
-  width: 40px;
-  height: 40px;
+  color: #555;
+  width: 45px;
+  height: 45px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .close-btn:hover {
-  background-color: #f5f5f5;
+  background-color: #e8f5e9;
   color: #e53935;
+  transform: rotate(90deg);
 }
 
 .modal-content {
-  padding: 20px;
+  padding: 30px;
   overflow-y: auto;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, #ffffff, #f9f9f9);
 }
 
 .modal-image {
   max-width: 100%;
-  max-height: 70vh;
+  max-height: 75vh;
   object-fit: contain;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-  border-radius: 8px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  border: 5px solid white;
+  transition: transform 0.3s ease;
+}
+
+.modal-image:hover {
+  transform: scale(1.02);
 }
 
 .modal-document {
   width: 100%;
-  height: 70vh;
+  height: 75vh;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
 }
 
-.modal-file-info {
+.verification-status {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 25px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  position: relative;
+  overflow: hidden;
+}
+
+.verification-status::before {
+  display: none;
+}
+
+.verification-status p {
+  margin: 0;
+  font-size: 1.05rem;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 20px;
-  text-align: center;
-  padding: 40px;
+  gap: 10px;
 }
 
-.modal-file-info .file-icon {
-  font-size: 80px;
-  color: #607d8b;
-}
-
-.modal-file-info p {
-  font-size: 1.2rem;
-  color: #455a64;
-  word-break: break-word;
-}
-
-.download-btn {
+.verified {
+  color: #10b981;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px;
-  background-color: #2196F3;
-  color: white;
+  padding: 5px 15px;
+  background-color: rgba(16, 185, 129, 0.1);
   border-radius: 8px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.3s;
-  box-shadow: 0 2px 8px rgba(33,150,243,0.3);
 }
 
-.download-btn:hover {
-  background-color: #1976d2;
-  box-shadow: 0 5px 15px rgba(33,150,243,0.4);
-  transform: translateY(-3px);
+.verified:before {
+  content: "✓";
+  display: inline-block;
+  font-size: 14px;
+  background: #10b981;
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 22px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
-.file-icon {
-  font-size: 24px;
-  color: #607d8b;
+.pending {
+  color: #f59e0b;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 15px;
+  background-color: rgba(245, 158, 11, 0.1);
+  border-radius: 8px;
+}
+
+.pending:before {
+  content: "\f254";
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  font-size: 14px;
+  color: #f59e0b;
 }
 
 /* Animations */
@@ -1758,26 +1964,270 @@ h3 {
   }
 }
 
+/* Place this in the correct order */
+.profile-picture-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.8), rgba(99, 102, 241, 0.8));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  transform: translateY(10px);
+  z-index: 2;
+}
+
+.profile-picture-overlay i {
+  font-size: 32px;
+  color: white;
+  margin-bottom: 10px;
+  animation: pulse 2s infinite;
+}
+
+.profile-picture-overlay span {
+  font-size: 14px;
+  text-align: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 5px;
+}
+
+.profile-picture-container:hover .profile-picture-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Update tab transitions */
+.tab-content {
+  display: block;
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* No data placeholders */
+.no-data {
+  color: #718096;
+  margin: 40px 0;
+  text-align: center;
+  padding: 50px 30px;
+  background: white;
+  border-radius: 18px;
+  border: 2px dashed #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.no-data p:first-child {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+.no-data p:last-child {
+  color: #4a5568;
+  line-height: 1.6;
+}
+
 /* Responsive Adjustments */
-@media (max-width: 768px) {
-  .section {
-    padding: 15px;
+@media screen and (max-width: 1400px) {
+  .provider-profile {
+    padding: 25px;
   }
   
-  .portfolio-grid,
-  .experience-list,
-  .education-list {
-    grid-template-columns: 1fr;
+  .profile-details {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  
+  .experience-list, .education-list, .portfolio-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media screen and (max-width: 991px) {
+  .provider-profile {
+    padding: 20px;
+  }
+  
+  h1 {
+    font-size: 2.2rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
   }
   
   .profile-header {
     flex-direction: column;
-    align-items: center;
     text-align: center;
+  }
+  
+  .profile-actions {
+    margin-top: 20px;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .section {
+    padding: 25px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .section-header h2 {
+    width: 100%;
+  }
+  
+  .image-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .provider-profile {
+    padding: 15px;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  .profile-tabs {
+    padding: 3px;
+  }
+  
+  .tab {
+    padding: 10px 15px;
+    font-size: 0.85rem;
+  }
+  
+  .tab i {
+    font-size: 16px;
+  }
+  
+  .profile-picture-container {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .detail-item, .experience-item, .education-item, .portfolio-item {
+    padding: 20px;
+  }
+  
+  .portfolio-grid, .experience-list, .education-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .gallery-item {
+    height: 120px;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .form-actions button {
+    width: 100%;
   }
   
   .modal-container {
     width: 95vw;
+  }
+  
+  .skills-list {
+    justify-content: center;
+  }
+  
+  .skill-tag {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+  }
+  
+  /* Improve portfolio item on mobile */
+  .portfolio-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .portfolio-header .project-link {
+    align-self: flex-start;
+  }
+  
+  /* Make buttons more touch-friendly */
+  .edit-btn, .add-btn, .save-btn, .cancel-btn, .view-btn {
+    min-height: 44px; /* Minimum touch target size */
+  }
+  
+  /* Improve forms on mobile */
+  .form-group input, .form-group textarea, .form-group select {
+    font-size: 16px; /* Prevent iOS zoom on focus */
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .provider-profile {
+    padding: 10px;
+  }
+  
+  h1 {
+    font-size: 1.6rem;
+    padding-bottom: 10px;
+  }
+  
+  h1::after {
+    width: 60px;
+    height: 3px;
+  }
+  
+  .profile-tabs {
+    gap: 2px;
+  }
+  
+  .tab {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .tab i {
+    font-size: 14px;
+  }
+  
+  .profile-picture-container {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .section {
+    padding: 20px 15px;
+    margin-bottom: 25px;
+  }
+  
+  .section::before {
+    height: 4px;
+  }
+  
+  .edit-btn, .add-btn, .save-btn, .cancel-btn, .view-btn {
+    padding: 10px 18px;
+    font-size: 0.85rem;
   }
   
   .document-item {
@@ -1785,64 +2235,43 @@ h3 {
     align-items: flex-start;
   }
   
-  .view-btn {
+  .document-item .view-btn {
     width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  h1 {
-    font-size: 1.8rem;
+    justify-content: center;
   }
   
-  .tab {
-    padding: 10px 15px;
+  .modal-header {
+    padding: 15px;
   }
   
-  .tab i {
-    font-size: 14px;
+  .modal-content {
+    padding: 15px;
   }
   
-  .gallery-item {
-    height: 100px;
+  .modal-file-info {
+    padding: 20px;
   }
   
-  .portfolio-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+  .modal-file-info .file-icon {
+    font-size: 60px;
   }
-}
-
-.profile-picture-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  opacity: 0;
-  transition: opacity 0.3s;
-  cursor: pointer;
-}
-
-.profile-picture-container:hover .profile-picture-overlay {
-  opacity: 1;
-}
-
-.profile-picture-overlay i {
-  font-size: 24px;
-  margin-bottom: 5px;
-}
-
-.profile-picture-overlay span {
-  font-size: 12px;
-  text-align: center;
+  
+  .modal-file-info p {
+    font-size: 1rem;
+  }
+  
+  .download-btn {
+    padding: 12px 20px;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Better touch targets */
+  .close-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
 }
 
 .hidden-input {
@@ -1868,5 +2297,330 @@ h3 {
   border-radius: 50%;
   border-top-color: white;
   animation: spin 1s linear infinite;
+}
+
+.modal-file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: center;
+  padding: 40px;
+  background: linear-gradient(135deg, #f9f9f9, #f5f5f5);
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  width: 100%;
+  max-width: 500px;
+}
+
+.modal-file-info .file-icon {
+  font-size: 80px;
+  color: #27ae60;
+  margin-bottom: 10px;
+}
+
+.modal-file-info p {
+  font-size: 1.2rem;
+  color: #333;
+  word-break: break-word;
+  margin: 0;
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(39, 174, 96, 0.2);
+  margin-top: 20px;
+}
+
+.download-btn:hover {
+  background: linear-gradient(135deg, #219d55, #27ae60);
+  box-shadow: 0 8px 20px rgba(39, 174, 96, 0.3);
+  transform: translateY(-3px);
+}
+
+.file-icon {
+  font-size: 24px;
+  color: #27ae60;
+}
+
+.edit-form {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #ffffff, #f9f9f9);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  border: 1px solid rgba(39, 174, 96, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.edit-form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 4px;
+  background: linear-gradient(to bottom, #27ae60, #2ecc71);
+  border-radius: 2px;
+}
+
+.add-form {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #ffffff, #f9f9f9);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  border: 1px solid rgba(39, 174, 96, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.add-form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 4px;
+  background: linear-gradient(to bottom, #27ae60, #2ecc71);
+  border-radius: 2px;
+}
+
+/* Add mobile-specific focus styles for better touch interaction */
+@media (hover: none) and (pointer: coarse) {
+  /* Applies only on touch devices */
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-width: 2px;
+    box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.2);
+  }
+
+  .tab:active, .btn:active, .skill-tag:active, .view-btn:active, .download-btn:active {
+    transform: scale(0.97);
+    transition: transform 0.1s;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .edit-form, .add-form {
+    padding: 15px;
+  }
+  
+  /* Improve form spacing on mobile */
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+  }
+  
+  .form-group input, .form-group textarea, .form-group select {
+    padding: 12px 15px;
+  }
+  
+  /* Better date input handling on mobile */
+  input[type="date"] {
+    min-height: 44px;
+  }
+  
+  /* Checkbox improvements for touch */
+  input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+  }
+}
+
+.profile-picture-container:hover .profile-picture-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Updated Modal Styles */
+.modal-container {
+  background-color: white;
+  border-radius: 20px;
+  max-width: 90vw;
+  width: 900px;
+  max-height: 90vh;
+  z-index: 1001;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  animation: modalFadeIn 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid #e2e8f0;
+}
+
+.modal-header {
+  padding: 20px 25px;
+  border-bottom: 1px solid #edf2f7;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: #4a5568;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background-color: #f7f7ff;
+  color: #ef4444;
+  transform: rotate(90deg);
+}
+
+.modal-content {
+  padding: 30px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+}
+
+.modal-image {
+  max-width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+  border-radius: 12px;
+  border: 3px solid white;
+  transition: transform 0.3s ease;
+}
+
+.modal-image:hover {
+  transform: scale(1.02);
+}
+
+.modal-document {
+  width: 100%;
+  height: 75vh;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+}
+
+.modal-file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: center;
+  padding: 40px;
+  background: #f8fafc;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  width: 100%;
+  max-width: 500px;
+  border: 1px solid #e2e8f0;
+}
+
+.modal-file-info .file-icon {
+  font-size: 80px;
+  color: #4f46e5;
+  margin-bottom: 10px;
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: #4f46e5;
+  color: white;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  margin-top: 20px;
+}
+
+.download-btn:hover {
+  background: #4338ca;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.2);
+  transform: translateY(-3px);
+}
+
+.profile-picture-overlay span {
+  font-size: 14px;
+  text-align: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 5px;
+}
+
+/* Add this to the end of the existing <style> section */
+
+.subsection {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.subsection:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.subsection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.subsection-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.documents-list h4 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 1rem;
 }
 </style>

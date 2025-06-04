@@ -71,7 +71,7 @@
             </button>
             
             <button 
-              v-if="booking.status === 'COMPLETED' && !booking.payment"
+              v-if="booking.status === 'COMPLETED' && (!booking.payment || booking.payment.status === 'PENDING')"
               class="btn btn-payment" 
               @click="openPaymentModal(booking)">
               Process Payment
@@ -248,9 +248,10 @@
 </template>
 
 <script>
-import { clientService } from '@/services/apiService';
-import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { clientService } from '@/services/apiService';
+import Swal from 'sweetalert2';
 
 const API_BASE_URL = 'http://localhost:5500';
 
@@ -441,16 +442,35 @@ export default {
             bookings.value[index].status = 'CANCELLED';
           }
           
+          // Show success message
+          Swal.fire({
+            title: 'Booking Cancelled',
+            text: 'Your booking has been successfully cancelled',
+            icon: 'success',
+            confirmButtonColor: '#4CAF50',
+            timer: 3000
+          });
+          
           // If filtering, we may need to refetch
           if (currentFilter.value !== 'ALL' && currentFilter.value !== 'CANCELLED') {
             fetchBookings(currentFilter.value);
           }
         } else {
-          error.value = response.message || 'Failed to cancel booking';
+          Swal.fire({
+            title: 'Cancellation Failed',
+            text: response.message || 'Failed to cancel booking',
+            icon: 'error',
+            confirmButtonColor: '#f44336'
+          });
         }
       } catch (err) {
         console.error('Error cancelling booking:', err);
-        error.value = 'Unable to cancel booking. Please try again later.';
+        Swal.fire({
+          title: 'Error',
+          text: 'Unable to cancel booking. Please try again later.',
+          icon: 'error',
+          confirmButtonColor: '#f44336'
+        });
       } finally {
         isCancelling.value = false;
       }
@@ -467,7 +487,12 @@ export default {
       const file = event.target.files[0];
       if (file) {
         if (file.size > 5 * 1024 * 1024) { // 5MB limit
-          alert('File size should not exceed 5MB');
+          Swal.fire({
+            title: 'File Too Large',
+            text: 'File size should not exceed 5MB',
+            icon: 'warning',
+            confirmButtonColor: '#ff9800'
+          });
           event.target.value = '';
           return;
         }
@@ -480,7 +505,12 @@ export default {
       
       // Validate number of files
       if (selectedImages.value.length + files.length > 5) {
-        alert('You can upload a maximum of 5 images');
+        Swal.fire({
+          title: 'Too Many Files',
+          text: 'You can upload a maximum of 5 images',
+          icon: 'warning',
+          confirmButtonColor: '#ff9800'
+        });
         event.target.value = '';
         return;
       }
@@ -488,7 +518,12 @@ export default {
       // Validate file sizes and create previews
       files.forEach(file => {
         if (file.size > 5 * 1024 * 1024) { // 5MB limit
-          alert(`File ${file.name} exceeds 5MB limit`);
+          Swal.fire({
+            title: 'File Too Large',
+            text: `File ${file.name} exceeds 5MB limit`,
+            icon: 'warning',
+            confirmButtonColor: '#ff9800'
+          });
           return;
         }
 
@@ -510,6 +545,18 @@ export default {
     // Payment confirmation
     const confirmPayment = async () => {
       try {
+        // Check if payment is already completed
+        if (selectedBooking.value.payment && selectedBooking.value.payment.status === 'COMPLETED') {
+          Swal.fire({
+            title: 'Payment Failed',
+            text: 'Payment has already been processed for this booking',
+            icon: 'error',
+            confirmButtonColor: '#f44336'
+          });
+          isProcessingPayment.value = false;
+          return;
+        }
+        
         isProcessingPayment.value = true;
         const result = await clientService.processPayment(
           selectedBooking.value.id,
@@ -518,14 +565,53 @@ export default {
 
         if (result.success) {
           showPaymentModal.value = false;
-          // Refresh bookings list
-          await fetchBookings();
+          
+          // Update the booking locally to maintain COMPLETED status
+          const index = bookings.value.findIndex(b => b.id === selectedBooking.value.id);
+          if (index !== -1) {
+            // Create payment object in local booking data with COMPLETED status
+            bookings.value[index].payment = {
+              ...result.data,
+              status: 'COMPLETED'
+            };
+            
+            // Ensure the status remains COMPLETED
+            if (bookings.value[index].status !== 'COMPLETED') {
+              bookings.value[index].status = 'COMPLETED';
+            }
+            
+            console.log('Updated booking after payment processing:', bookings.value[index]);
+          }
+          
+          // Show success message with SweetAlert2
+          Swal.fire({
+            title: 'Payment Processed!',
+            text: 'Your payment has been successfully processed',
+            icon: 'success',
+            confirmButtonColor: '#4CAF50',
+            timer: 3000
+          });
+          
+          // Force UI to update immediately
+          bookings.value = [...bookings.value];
         } else {
-          alert(result.message || 'Failed to process payment');
+          // Error message with SweetAlert2
+          Swal.fire({
+            title: 'Payment Failed',
+            text: result.message || 'Failed to process payment',
+            icon: 'error',
+            confirmButtonColor: '#f44336'
+          });
         }
       } catch (error) {
         console.error('Payment error:', error);
-        alert('An error occurred while processing payment');
+        // Error message with SweetAlert2
+        Swal.fire({
+          title: 'Error',
+          text: 'An error occurred while processing payment',
+          icon: 'error',
+          confirmButtonColor: '#f44336'
+        });
       } finally {
         isProcessingPayment.value = false;
         paymentProofFile.value = null;
@@ -543,7 +629,12 @@ export default {
     // Review submission
     const submitReview = async () => {
       if (!reviewData.value.rating) {
-        alert('Please provide a rating');
+        Swal.fire({
+          title: 'Rating Required',
+          text: 'Please provide a rating before submitting',
+          icon: 'warning',
+          confirmButtonColor: '#ff9800'
+        });
         return;
       }
 
@@ -562,14 +653,32 @@ export default {
 
         if (result.success) {
           showReviewModal.value = false;
+          // Show success message
+          Swal.fire({
+            title: 'Review Submitted!',
+            text: 'Thank you for your feedback',
+            icon: 'success',
+            confirmButtonColor: '#4CAF50',
+            timer: 3000
+          });
           // Refresh bookings list
           await fetchBookings();
         } else {
-          alert(result.message || 'Failed to submit review');
+          Swal.fire({
+            title: 'Submission Failed',
+            text: result.message || 'Failed to submit review',
+            icon: 'error',
+            confirmButtonColor: '#f44336'
+          });
         }
       } catch (error) {
         console.error('Review submission error:', error);
-        alert('An error occurred while submitting the review');
+        Swal.fire({
+          title: 'Error',
+          text: 'An error occurred while submitting the review',
+          icon: 'error',
+          confirmButtonColor: '#f44336'
+        });
       } finally {
         isSubmittingReview.value = false;
         reviewData.value = { rating: 0, comment: '' };
@@ -590,8 +699,24 @@ export default {
       );
     };
 
+    // Function to check if payment is completed
+    const hasCompletedPayment = (booking) => {
+      return booking && booking.payment && booking.payment.status === 'COMPLETED';
+    };
+    
     // Function to open payment modal
     const openPaymentModal = (booking) => {
+      // Check if payment is already completed
+      if (booking.payment && booking.payment.status === 'COMPLETED') {
+        Swal.fire({
+          title: 'Payment Failed',
+          text: 'Payment has already been processed for this booking',
+          icon: 'error',
+          confirmButtonColor: '#f44336'
+        });
+        return;
+      }
+      
       selectedBooking.value = booking;
       showPaymentModal.value = true;
     };
@@ -661,6 +786,7 @@ export default {
       openReviewModal,
       setRating,
       userReviews,
+      hasCompletedPayment,
     };
   }
 };
@@ -681,7 +807,7 @@ export default {
   color: #2c3e50;
   font-size: 2.2rem;
   font-weight: 700;
-  border-left: 5px solid #3498db;
+  border-left: 5px solid #27ae60;
   padding-left: 15px;
   transition: all 0.3s ease;
   position: relative;
@@ -698,7 +824,7 @@ export default {
   left: 0;
   width: 100px;
   height: 3px;
-  background: linear-gradient(90deg, #3498db, #2ecc71);
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
   border-radius: 2px;
 }
 
@@ -712,9 +838,9 @@ export default {
 }
 
 .spinner {
-  border: 4px solid rgba(52, 152, 219, 0.2);
+  border: 4px solid rgba(39, 174, 96, 0.2);
   border-radius: 50%;
-  border-top: 4px solid #3498db;
+  border-top: 4px solid #27ae60;
   width: 50px;
   height: 50px;
   animation: spin 1s linear infinite;
@@ -788,9 +914,9 @@ export default {
 }
 
 .filter-btn.active {
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  background: linear-gradient(135deg, #27ae60, #219d55);
   color: white;
-  box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
   font-weight: 600;
 }
 
@@ -823,7 +949,7 @@ export default {
   left: 0;
   width: 100%;
   height: 4px;
-  background: linear-gradient(90deg, #3498db, #2ecc71);
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s ease;
@@ -858,7 +984,7 @@ export default {
 }
 
 .booking-status.confirmed {
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  background: linear-gradient(135deg, #27ae60, #219d55);
 }
 
 .booking-status.in_progress {
@@ -933,7 +1059,7 @@ export default {
 
 .booking-date i, .booking-provider i, .booking-price i {
   width: 24px;
-  color: #3498db;
+  color: #27ae60;
   margin-right: 6px;
   font-size: 1rem;
 }
@@ -957,7 +1083,7 @@ export default {
 
 .booking-address i {
   width: 24px;
-  color: #3498db;
+  color: #27ae60;
   margin-right: 6px;
   font-size: 1rem;
   margin-top: 3px;
@@ -1040,14 +1166,14 @@ export default {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  background: linear-gradient(135deg, #27ae60, #219d55);
   color: white;
-  box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 4px 10px rgba(39, 174, 96, 0.2);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #2980b9, #2471a3);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+  background: linear-gradient(135deg, #219d55, #1e8449);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
 .btn-secondary {
@@ -1271,14 +1397,14 @@ export default {
 
 .payment-note {
   margin: 0;
-  color: #505a68;
+  color: #27ae60;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
 .payment-note i {
-  color: #3498db;
+  color: #27ae60;
   font-size: 1.2rem;
 }
 
@@ -1312,9 +1438,9 @@ export default {
 }
 
 .form-control:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
   outline: none;
+  border-color: #38b676;
+  box-shadow: 0 0 0 3px rgba(56, 182, 118, 0.1);
 }
 
 textarea.form-control {

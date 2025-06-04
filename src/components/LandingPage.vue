@@ -5,7 +5,7 @@
       <div class="hero-overlay"></div>
       <div class="hero-content">
         <img src="../assets/logo.png" alt="ServiceLink Logo" class="hero-logo" />
-        <h1>Find Expert Services<br/>For Any Need</h1>
+        <h1>ServiceLink</h1>
         <p class="hero-tagline">Connect with top-rated professionals in your area</p>
         <div class="hero-actions">
           <router-link to="/login" class="primary-btn">Find Services</router-link>

@@ -222,12 +222,30 @@ export default {
             ? JSON.parse(notification.data) 
             : notification.data;
           
+          const userRole = localStorage.getItem('userRole') || '';
+          const isProvider = userRole === 'PROVIDER';
+          
           switch (notification.type) {
             case 'BOOKING_REQUEST':
             case 'BOOKING_CONFIRMED':
             case 'BOOKING_CANCELLED':
+            case 'SERVICE_COMPLETED':
               if (data.bookingId) {
-                router.push(`/provider/bookings/${data.bookingId}`);
+                if (isProvider) {
+                  router.push(`/provider/booking/${data.bookingId}`);
+                } else {
+                  router.push(`/client/booking/${data.bookingId}`);
+                }
+              }
+              break;
+              
+            case 'PAYMENT_RECEIVED':
+              if (data.bookingId) {
+                if (isProvider) {
+                  router.push(`/provider/booking/${data.bookingId}`);
+                } else {
+                  router.push(`/client/booking/${data.bookingId}`);
+                }
               }
               break;
               
@@ -238,12 +256,20 @@ export default {
               break;
               
             case 'REVIEW_RECEIVED':
-              router.push('/provider/reviews');
+              if (isProvider) {
+                router.push('/provider/reviews');
+              } else {
+                router.push('/client/reviews');
+              }
               break;
               
             case 'CONTRACT_SIGNED':
               if (data.contractId) {
-                router.push(`/provider/contracts/${data.contractId}`);
+                if (isProvider) {
+                  router.push(`/provider/contracts/${data.contractId}`);
+                } else {
+                  router.push(`/client/contracts/${data.contractId}`);
+                }
               }
               break;
               
@@ -465,6 +491,7 @@ export default {
   margin-bottom: 5px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

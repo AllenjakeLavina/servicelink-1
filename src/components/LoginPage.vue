@@ -8,7 +8,7 @@
       <p class="subtitle">Welcome back! Please enter your credentials</p>
       
       <form @submit.prevent="handleLogin">
-        <div v-if="error" class="error-message">{{ error }}</div>
+        <!-- Error messages now handled by SweetAlert -->
         
         <div class="form-group">
           <label for="email">Email</label>
@@ -59,6 +59,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { authService } from '../services/apiService';
+import Swal from 'sweetalert2';
 
 export default {
   name: 'LoginPage',
@@ -66,11 +67,9 @@ export default {
     const router = useRouter();
     const email = ref('');
     const password = ref('');
-    const error = ref('');
     const loading = ref(false);
 
     const handleLogin = async () => {
-      error.value = '';
       loading.value = true;
       
       try {
@@ -83,19 +82,44 @@ export default {
           // Store user role in local storage
           localStorage.setItem('userRole', response.data.user.role);
           
-          // Redirect based on user role
-          if (response.data.user.role === 'CLIENT') {
-            router.push('/client/dashboard');
-          } else if (response.data.user.role === 'PROVIDER') {
-            router.push('/provider/dashboard');
-          } else {
-            router.push('/admin/dashboard');
-          }
+          // Show success message
+          Swal.fire({
+            title: 'Login Successful!',
+            text: `Welcome back, ${response.data.user.firstName || 'User'}!`,
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false,
+            position: 'top-end',
+            toast: true
+          });
+          
+          // Redirect based on user role after short delay to show the message
+          setTimeout(() => {
+            if (response.data.user.role === 'CLIENT') {
+              router.push('/client/services');
+            } else if (response.data.user.role === 'PROVIDER') {
+              router.push('/provider/services');
+            } else {
+              router.push('/admin/dashboard');
+            }
+          }, 1000);
         } else {
-          error.value = response.message || 'Login failed';
+          // Show error with SweetAlert2
+          Swal.fire({
+            title: 'Login Failed',
+            text: response.message || 'Invalid email or password',
+            icon: 'error',
+            confirmButtonColor: '#106e40'
+          });
         }
       } catch (err) {
-        error.value = err.message || 'An error occurred during login';
+        // Show error with SweetAlert2
+        Swal.fire({
+          title: 'Error',
+          text: err.message || 'An error occurred during login',
+          icon: 'error',
+          confirmButtonColor: '#106e40'
+        });
       } finally {
         loading.value = false;
       }
@@ -104,7 +128,6 @@ export default {
     return {
       email,
       password,
-      error,
       loading,
       handleLogin
     };

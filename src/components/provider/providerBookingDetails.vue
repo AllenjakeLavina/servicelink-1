@@ -1,71 +1,77 @@
 <template>
-  <div class="booking-details">
-    <div v-if="loading" class="loading">
-      <div class="spinner"></div>
-      <p>Loading booking details...</p>
-    </div>
-
-    <div v-else-if="error" class="error-container">
-      <div class="error">{{ error }}</div>
-    </div>
-
-    <div v-else class="details-container">
-      <div class="header">
+  <div class="booking-details-page">
+    <div class="container">
+      <div class="back-nav">
         <button class="back-btn" @click="goBack">
           <i class="fa fa-arrow-left"></i> Back to Bookings
         </button>
-        <h1>Booking Details</h1>
       </div>
 
-      <div class="booking-card">
-        <div class="booking-status" :class="booking.status.toLowerCase()">
-          {{ formatStatus(booking.status) }}
-        </div>
+      <div v-if="loading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading booking details...</p>
+      </div>
 
-        <div class="service-details">
-          <div class="service-image" v-if="getServiceImage(booking)">
-            <img :src="getServiceImage(booking)" :alt="booking.service.title" />
+      <div v-else-if="error" class="error-card">
+        <div class="error">{{ error }}</div>
+      </div>
+
+      <div v-else class="details-section">
+        <div class="main-card">
+          <div class="card-header">
+            <h1>Booking Details</h1>
+            <div class="status-badge" :class="booking.status.toLowerCase()">
+              {{ formatStatus(booking.status) }}
+            </div>
           </div>
           
           <div class="service-info">
             <h2>{{ booking.title || booking.service.title }}</h2>
-            <p class="date">
-              <i class="fa fa-calendar"></i> 
-              {{ formatDate(booking.startTime) }}
-            </p>
-            <p class="client">
-              <i class="fa fa-user"></i> 
-              {{ getClientName(booking) }}
-            </p>
-            <p class="price">
-              <i class="fa fa-tag"></i> 
-              ₱{{ Number(booking.totalAmount || booking.service.pricing).toFixed(2) }}
-            </p>
+            <div class="info-row">
+              <div class="info-label"><i class="fa fa-calendar"></i> Date:</div>
+              <div class="info-value">{{ formatDate(booking.startTime) }}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label"><i class="fa fa-user"></i> Client:</div>
+              <div class="info-value">{{ getClientName(booking) }}</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label"><i class="fa fa-tag"></i> Amount:</div>
+              <div class="info-value">₱{{ Number(booking.totalAmount || booking.service.pricing).toFixed(2) }}</div>
+            </div>
           </div>
-        </div>
 
-        <div class="section">
-          <h3>Service Location</h3>
-          <div class="address" v-if="booking.address">
-            <i class="fa fa-map-marker"></i>
-            {{ formatAddress(booking.address) }}
+          <div v-if="booking.address" class="card-section">
+            <h3>Service Location</h3>
+            <p>{{ formatAddress(booking.address) }}</p>
           </div>
-        </div>
 
-        <div class="section" v-if="booking.notes">
-          <h3>Additional Notes</h3>
-          <p class="notes">{{ booking.notes }}</p>
-        </div>
+          <div v-if="booking.notes" class="card-section">
+            <h3>Additional Notes</h3>
+            <p>{{ booking.notes }}</p>
+          </div>
 
-        <div class="section" v-if="booking.payment">
-          <h3>Payment Information</h3>
-          <div class="payment-info">
-            <p>Status: <span :class="booking.payment.status.toLowerCase()">{{ booking.payment.status }}</span></p>
-            <p>Amount: ₱{{ Number(booking.payment.amount).toFixed(2) }}</p>
-            <p v-if="booking.payment.paymentMethod">Method: {{ booking.payment.paymentMethod }}</p>
-            
-            <div v-if="booking.payment.paymentProofUrl" class="payment-proof">
-              <h4>Payment Proof</h4>
+          <div v-if="booking.payment" class="card-section">
+            <h3>Payment Information</h3>
+            <div class="info-row">
+              <div class="info-label">Status:</div>
+              <div class="info-value status" :class="booking.payment.status.toLowerCase()">
+                {{ booking.payment.status }}
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Amount:</div>
+              <div class="info-value">₱{{ Number(booking.payment.amount).toFixed(2) }}</div>
+            </div>
+            <div v-if="booking.payment.paymentMethod" class="info-row">
+              <div class="info-label">Method:</div>
+              <div class="info-value">{{ booking.payment.paymentMethod }}</div>
+            </div>
+          </div>
+
+          <div v-if="booking.payment && booking.payment.paymentProofUrl" class="card-section">
+            <h3>Payment Proof</h3>
+            <div class="payment-proof">
               <img 
                 :src="getPaymentProofUrl(booking)" 
                 alt="Payment Proof"
@@ -73,41 +79,41 @@
               />
             </div>
           </div>
-        </div>
 
-        <div class="actions">
-          <template v-if="booking.status === 'PENDING'">
-            <button class="btn btn-accept" @click="confirmAcceptBooking">Accept</button>
-            <button class="btn btn-decline" @click="confirmDeclineBooking">Decline</button>
-          </template>
-          
-          <button 
-            v-if="booking.status === 'CONFIRMED'"
-            class="btn btn-start" 
-            @click="confirmStartService">
-            Start Service
-          </button>
-          
-          <button 
-            v-if="booking.status === 'IN_PROGRESS'"
-            class="btn btn-complete" 
-            @click="confirmCompleteService">
-            Complete Service
-          </button>
+          <div class="actions-section">
+            <template v-if="booking.status === 'PENDING'">
+              <button class="btn btn-accept" @click="confirmAcceptBooking">Accept</button>
+              <button class="btn btn-decline" @click="confirmDeclineBooking">Decline</button>
+            </template>
+            
+            <button 
+              v-if="booking.status === 'CONFIRMED'"
+              class="btn btn-start" 
+              @click="confirmStartService">
+              Start Service
+            </button>
+            
+            <button 
+              v-if="booking.status === 'IN_PROGRESS'"
+              class="btn btn-complete" 
+              @click="confirmCompleteService">
+              Complete Service
+            </button>
 
-          <button 
-            v-if="booking.status === 'COMPLETED' && booking.payment && booking.payment.status === 'PENDING'"
-            class="btn btn-payment" 
-            @click="confirmMarkPaymentCompleted">
-            Mark Payment Received
-          </button>
-          
-          <button 
-            v-if="booking.status === 'COMPLETED' && !isBookingRated"
-            class="btn btn-rate" 
-            @click="openRatingModal">
-            Rate Client
-          </button>
+            <button 
+              v-if="booking.status === 'COMPLETED' && booking.payment && booking.payment.status === 'PENDING'"
+              class="btn btn-payment" 
+              @click="confirmMarkPaymentCompleted">
+              Mark Payment Received
+            </button>
+            
+            <button 
+              v-if="booking.status === 'COMPLETED' && !isBookingRated"
+              class="btn btn-rate" 
+              @click="openRatingModal">
+              Rate Client
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -365,163 +371,142 @@ export default {
 </script>
 
 <style scoped>
-.booking-details {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+.booking-details-page {
+  background-color: #f5f7f9;
+  min-height: calc(100vh - 80px);
+  padding: 30px 0;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 30px;
-  gap: 20px;
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.back-nav {
+  margin-bottom: 20px;
 }
 
 .back-btn {
   background: none;
   border: none;
-  color: #3498db;
+  color: #00A046;
   cursor: pointer;
   font-size: 1rem;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  padding: 0;
+  transition: color 0.3s ease;
 }
 
 .back-btn:hover {
-  background-color: rgba(52, 152, 219, 0.1);
+  color: #007f36;
+  text-decoration: underline;
 }
 
-.booking-card {
+.main-card {
   background: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
-
-.booking-status {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  color: white;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-}
-
-.booking-status.pending { background-color: #f39c12; }
-.booking-status.confirmed { background-color: #3498db; }
-.booking-status.in_progress { background-color: #9b59b6; }
-.booking-status.completed { background-color: #2ecc71; }
-.booking-status.cancelled { background-color: #e74c3c; }
-
-.service-details {
-  display: flex;
-  gap: 30px;
-  margin-bottom: 30px;
-}
-
-.service-image {
-  width: 200px;
-  height: 200px;
-  border-radius: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 }
 
-.service-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.card-header {
+  padding: 20px 30px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.status-badge.pending { background-color: #f39c12; }
+.status-badge.confirmed { background-color: #3498db; }
+.status-badge.in_progress { background-color: #9b59b6; }
+.status-badge.completed { background-color: #2ecc71; }
+.status-badge.cancelled { background-color: #e74c3c; }
+
+.service-info {
+  padding: 20px 30px;
+  border-bottom: 1px solid #eee;
 }
 
 .service-info h2 {
-  margin: 0 0 20px 0;
-  font-size: 1.8rem;
-  color: #2c3e50;
+  margin: 0 0 15px 0;
+  font-size: 1.5rem;
+  color: #333;
+  font-weight: 600;
 }
 
-.service-info p {
-  margin: 10px 0;
+.card-section {
+  padding: 20px 30px;
+  border-bottom: 1px solid #eee;
+}
+
+.card-section h3 {
+  margin: 0 0 15px 0;
   font-size: 1.1rem;
-  color: #34495e;
+  color: #666;
+  font-weight: 600;
+}
+
+.card-section p {
+  margin: 0;
+  color: #333;
+  line-height: 1.6;
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  min-width: 120px;
+  color: #666;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.service-info i {
-  color: #3498db;
-  width: 20px;
+.info-value {
+  color: #333;
+  font-weight: 500;
 }
 
-.section {
-  margin: 30px 0;
-  padding-top: 30px;
-  border-top: 1px solid #eee;
-}
-
-.section h3 {
-  margin: 0 0 15px 0;
-  color: #2c3e50;
-  font-size: 1.3rem;
-}
-
-.address {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  color: #34495e;
-  font-size: 1.1rem;
-  background-color: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
-}
-
-.notes {
-  color: #34495e;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  background-color: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
-}
-
-.payment-info {
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.payment-info p {
-  margin: 10px 0;
-  font-size: 1.1rem;
-  color: #34495e;
-}
-
-.payment-info .completed {
+.info-value.status.completed {
   color: #2ecc71;
   font-weight: 600;
 }
 
-.payment-info .pending {
+.info-value.status.pending {
   color: #f39c12;
   font-weight: 600;
 }
 
 .payment-proof {
-  margin-top: 20px;
-}
-
-.payment-proof h4 {
-  margin: 0 0 10px 0;
-  color: #2c3e50;
+  margin-top: 10px;
 }
 
 .payment-proof img {
@@ -529,24 +514,26 @@ export default {
   border-radius: 8px;
   cursor: pointer;
   transition: transform 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .payment-proof img:hover {
   transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
-.actions {
+.actions-section {
+  padding: 25px 30px;
   display: flex;
   gap: 15px;
-  margin-top: 30px;
-  padding-top: 30px;
-  border-top: 1px solid #eee;
+  justify-content: flex-end;
 }
 
 .btn {
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 10px 20px;
+  border-radius: 4px;
   font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
   border: none;
   transition: all 0.3s ease;
@@ -583,25 +570,29 @@ export default {
 }
 
 .btn:hover {
+  opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.loading {
+.loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  min-height: 300px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .spinner {
-  border: 4px solid rgba(52, 152, 219, 0.2);
+  border: 3px solid rgba(0, 160, 70, 0.2);
   border-radius: 50%;
-  border-top: 4px solid #3498db;
+  border-top: 3px solid #00A046;
   width: 40px;
   height: 40px;
   animation: spin 1s linear infinite;
+  margin-bottom: 15px;
 }
 
 @keyframes spin {
@@ -609,41 +600,54 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-.error-container {
-  padding: 20px;
-  background-color: #fef2f2;
-  border-left: 4px solid #e74c3c;
-  color: #e74c3c;
+.error-card {
+  padding: 25px;
+  background-color: white;
   border-radius: 8px;
-  margin: 20px 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-@media (max-width: 768px) {
-  .booking-details {
-    padding: 15px;
-  }
+.error {
+  color: #e74c3c;
+  text-align: center;
+}
 
-  .service-details {
+@media (max-width: 600px) {
+  .booking-details-page {
+    padding: 15px 0;
+  }
+  
+  .container {
+    padding: 0 15px;
+  }
+  
+  .card-header {
+    padding: 15px 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .service-info, .card-section, .actions-section {
+    padding: 15px 20px;
+  }
+  
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  .info-label {
+    min-width: auto;
+  }
+  
+  .actions-section {
     flex-direction: column;
   }
-
-  .service-image {
-    width: 100%;
-    height: 250px;
-  }
-
-  .actions {
-    flex-direction: column;
-  }
-
+  
   .btn {
     width: 100%;
-  }
-
-  .booking-status {
-    position: static;
-    display: inline-block;
-    margin-bottom: 20px;
   }
 }
 </style> 
