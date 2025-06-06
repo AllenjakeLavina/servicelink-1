@@ -1091,9 +1091,9 @@ export default {
 
 .page-title {
   margin-bottom: 30px;
-  color: #2c3e50;
-  font-size: 2.2rem;
-  font-weight: 700;
+  color: #4a5568;
+  font-size: 2.6rem;
+  font-weight: 800;
   border-left: 5px solid #27ae60;
   padding-left: 15px;
   transition: all 0.3s ease;

@@ -859,6 +859,18 @@ export const clientService = {
     }
   },
 
+  setDefaultAddress: async (addressId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/client/address/${addressId}/default`, {
+        method: 'PATCH',
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
   deleteAddress: async (addressId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/client/address/${addressId}`, {

@@ -5,6 +5,8 @@ import RegisterOption from '../components/RegisterOption.vue';
 import RegisterClientPage from '../components/RegisterClientPage.vue';
 import RegisterProvider from '../components/RegisterProvider.vue';
 import EmailVerification from '../components/EmailVerification.vue';
+import ForgotPassword from '../components/ForgotPassword.vue';
+import ResetPassword from '../components/ResetPassword.vue';
 import ProviderProfile from '../components/provider/providerProfile.vue';
 import ProviderServices from '../components/provider/providerServices.vue';
 import Notifications from '../components/shared/Notifications.vue';
@@ -46,6 +48,16 @@ const routes = [
     path: '/verify-email',
     name: 'EmailVerification',
     component: EmailVerification
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPassword
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: ResetPassword
   },
   {
     path: '/provider/profile',

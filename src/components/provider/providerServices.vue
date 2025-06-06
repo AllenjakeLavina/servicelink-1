@@ -555,12 +555,13 @@ export default {
 
 .page-title {
   text-align: center;
-  color: #2c3e50;
+  color: #4a5568;
   margin-bottom: 30px;
-  font-size: 2.2rem;
-  font-weight: 700;
+  font-size: 2.6rem;
+  font-weight: 800;
   position: relative;
   padding-bottom: 15px;
+  letter-spacing: -0.02em;
 }
 
 .page-title::after {
