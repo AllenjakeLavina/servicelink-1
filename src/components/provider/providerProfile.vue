@@ -30,7 +30,7 @@
                 <i class="fas fa-user"></i>
               </div>
               
-              <!-- Add upload overlay and functionality -->
+              <!-- Overlay clickable area -->
               <div class="profile-picture-overlay" @click="triggerFileUpload">
                 <i class="fas fa-camera"></i>
                 <span>Change Photo</span>
@@ -43,6 +43,7 @@
                 @change="handleProfileImageChange" 
                 accept="image/*" 
                 class="hidden-input" 
+                style="display:none" 
               />
               
               <!-- Upload progress indicator -->
@@ -876,48 +877,32 @@ export default {
 
     // Profile image upload functions
     const triggerFileUpload = () => {
-      profileImageInput.value.click();
+      if (profileImageInput.value) profileImageInput.value.click();
     };
 
     const handleProfileImageChange = async (event) => {
       const file = event.target.files[0];
-      console.log('File selected:', file);
-      
-      if (!file) {
-        console.error('No file selected');
-        return;
-      }
-      
+      if (!file) return;
       // Validate file type
       if (!file.type.match('image.*')) {
         error.value = 'Please select an image file';
-        console.error('Invalid file type:', file.type);
         return;
       }
-      
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         error.value = 'Image must be less than 5MB';
-        console.error('File too large:', file.size);
         return;
       }
-      
       try {
         uploadingProfileImage.value = true;
         error.value = null;
-        
-        // Use the uploadProfilePicture service instead of direct fetch
         const response = await apiService.uploadProfilePicture(file);
-        
         if (response.success) {
-          // Update local profile data with the response
           profile.value = response.data;
-          console.log('Profile picture updated successfully');
         } else {
           throw new Error(response.message || 'Failed to update profile picture');
         }
       } catch (err) {
-        console.error('Error in profile image upload:', err);
         error.value = err.message || 'Failed to upload profile picture';
       } finally {
         uploadingProfileImage.value = false;
@@ -1145,20 +1130,13 @@ h3 {
 
 .profile-picture-container {
   position: relative;
-  width: 180px;
-  height: 180px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.15);
-  border: 4px solid white;
-  flex-shrink: 0;
-  background-color: #f1f5f9;
-  transition: all 0.3s ease;
-}
-
-.profile-picture-container:hover {
-  transform: scale(1.03);
-  box-shadow: 0 15px 35px rgba(79, 70, 229, 0.2);
+  background-color: #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin: 0 auto;
 }
 
 .profile-picture {
@@ -1173,11 +1151,78 @@ h3 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  border-radius: 50%;
 }
 
-.profile-picture-container:hover img {
-  transform: scale(1.1);
+.placeholder-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e0e0e0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.profile-picture-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s;
+  cursor: pointer;
+}
+
+.profile-picture-container:hover .profile-picture-overlay {
+  opacity: 1;
+}
+
+.profile-picture-overlay i {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.profile-picture-overlay span {
+  font-size: 11px;
+  text-align: center;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.upload-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-progress .spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .profile-details {
@@ -1573,18 +1618,6 @@ h3 {
 .no-data p:last-child {
   color: #555;
   line-height: 1.6;
-}
-
-.placeholder-img {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #eceff1;
-  color: #90a4ae;
-}
-
-.placeholder-img i {
-  font-size: 48px;
 }
 
 .loading {

@@ -46,7 +46,7 @@
         <div v-else class="providers-grid">
           <div v-for="provider in providers" :key="provider.id" class="provider-card">
             <div class="provider-image">
-              <img :src="provider.profilePicture || '../assets/default-avatar.png'" :alt="provider.name">
+              <img :src="getProfileImage(provider.profilePicture)" :alt="provider.name">
             </div>
             <div class="provider-info">
               <h3>{{ provider.name }}</h3>
@@ -61,7 +61,7 @@
                   <span class="stars">★ {{ provider.rating?.toFixed(1) || '0.0' }}</span>
                   <span class="review-count">({{ provider.reviewCount || '0' }} reviews)</span>
                 </div>
-                <router-link :to="'/provider/' + provider.id" class="view-profile">View Profile</router-link>
+                <button @click="handleViewProfile(provider.id)" class="view-profile">View Profile</button>
               </div>
             </div>
           </div>
@@ -73,11 +73,13 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import { providerService } from '../services/apiService';
+import apiService, { providerService } from '../services/apiService';
+import { useRouter } from 'vue-router';
 
 export default {
   name: 'LandingPage',
   setup() {
+    const router = useRouter();
     const categories = ref([
       { name: 'Home Services', icon: '🏠', description: 'Expert maintenance & repairs for your home' },
       { name: 'Professional', icon: '💼', description: 'Business & consulting services' },
@@ -89,6 +91,22 @@ export default {
     const providers = ref([]);
     const loading = ref(true);
     const error = ref(null);
+
+    const getProfileImage = (profilePicture) => {
+      if (!profilePicture) {
+        return '/default-avatar.png';
+      }
+      return apiService.getFileUrl(profilePicture);
+    };
+
+    const handleViewProfile = (providerId) => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        router.push(`/provider/${providerId}`);
+      } else {
+        router.push('/login');
+      }
+    };
 
     const fetchProviders = async () => {
       try {
@@ -115,7 +133,9 @@ export default {
       providers,
       loading,
       error,
-      categories
+      categories,
+      handleViewProfile,
+      getProfileImage
     };
   }
 };
@@ -508,6 +528,9 @@ export default {
   transition: all 0.2s ease;
   padding: 6px 12px;
   border-radius: 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
 }
 
 .view-profile:hover {

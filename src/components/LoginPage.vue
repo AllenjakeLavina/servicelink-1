@@ -5,16 +5,6 @@
       <div class="login-form-side">
         <div class="company-name">ServiceLink</div>
         <h1 class="title">Sign in to Account</h1>
-        
-        <div class="social-login">
-          <button class="social-btn"><i class="fab fa-facebook-f"></i></button>
-          <button class="social-btn"><i class="fab fa-linkedin-in"></i></button>
-          <button class="social-btn"><i class="fab fa-google"></i></button>
-        </div>
-        
-        <div class="divider">
-          <span>or use your email account</span>
-        </div>
 
         <form @submit.prevent="handleLogin">
           <div class="form-group">
@@ -205,67 +195,22 @@ export default {
 }
 
 .company-name {
-  font-size: 1.2rem;
+  font-size: 1.9rem;
+  display: flex;
   color: #106e40;
-  font-weight: 600;
-  margin-bottom: 30px;
+  justify-content: center;
+  font-weight: 700;
+  margin-bottom: 80px;
 }
 
 .title {
   font-size: 24px;
   font-weight: 600;
   color: #333;
-  margin-bottom: 30px;
+  margin-bottom: 2px;
 }
 
-.social-login {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  margin-bottom: 25px;
-}
 
-.social-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid #e0e0e0;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.social-btn:hover {
-  background: #f8f8f8;
-  transform: translateY(-2px);
-}
-
-.divider {
-  text-align: center;
-  margin: 20px 0;
-  position: relative;
-}
-
-.divider::before,
-.divider::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 45%;
-  height: 1px;
-  background: #e0e0e0;
-}
-
-.divider::before {
-  left: 0;
-}
-
-.divider::after {
-  right: 0;
-}
 
 .divider span {
   background: white;
