@@ -1,55 +1,72 @@
 <template>
-  <div class="auth-container">
-    <div class="auth-card">
-      <div class="logo">
-        <img src="../assets/logo.png" alt="ServiceLink Logo" />
-      </div>
-      <h2>Login to Your Account</h2>
-      <p class="subtitle">Welcome back! Please enter your credentials</p>
-      
-      <form @submit.prevent="handleLogin">
-        <!-- Error messages now handled by SweetAlert -->
+  <div class="login-container">
+    <div class="login-card">
+      <!-- Left side -->
+      <div class="login-form-side">
+        <div class="company-name">ServiceLink</div>
+        <h1 class="title">Sign in to Account</h1>
         
-        <div class="form-group">
-          <label for="email">Email</label>
-          <div class="input-container">
-            <span class="input-icon">✉️</span>
+        <div class="social-login">
+          <button class="social-btn"><i class="fab fa-facebook-f"></i></button>
+          <button class="social-btn"><i class="fab fa-linkedin-in"></i></button>
+          <button class="social-btn"><i class="fab fa-google"></i></button>
+        </div>
+        
+        <div class="divider">
+          <span>or use your email account</span>
+        </div>
+
+        <form @submit.prevent="handleLogin">
+          <div class="form-group">
             <input 
               type="email" 
               id="email" 
               v-model="email" 
               required
-              placeholder="Enter your email"
+              placeholder="Your Email"
             />
           </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="password">Password</label>
-          <div class="input-container">
-            <span class="input-icon">🔒</span>
+          
+          <div class="form-group">
             <input 
               type="password" 
               id="password" 
               v-model="password" 
               required
-              placeholder="Enter your password"
+              placeholder="Password"
             />
           </div>
-          <div class="forgot-password">
-            <router-link to="/forgot-password">Forgot password?</router-link>
+
+          <div class="form-options">
+            <label class="remember-me">
+              <input type="checkbox" />
+              <span>Remember me</span>
+            </label>
+            <router-link to="/forgot-password" class="forgot-link">Forgot Password?</router-link>
           </div>
-        </div>
-        
-        <div class="form-actions">
-          <button type="submit" class="primary-btn" :disabled="loading">
-            {{ loading ? 'Logging in...' : 'Login' }}
+          
+          <button type="submit" class="sign-in-btn" :disabled="loading">
+            {{ loading ? 'Signing in...' : 'Sign In' }}
           </button>
+        </form>
+
+        <div class="footer-links">
+          <span>Privacy Policy</span>
+          <span class="dot">•</span>
+          <span>Terms & Conditions</span>
         </div>
-      </form>
-      
-      <div class="auth-footer">
-        <p>Don't have an account? <router-link to="/register">Register</router-link></p>
+      </div>
+
+      <!-- Right side -->
+      <div class="welcome-side">
+        <div class="welcome-content">
+          <div class="welcome-logo">
+            <img src="../assets/logo.png" alt="ServiceLink Logo" />
+          </div>
+          <h2>Hello, Friend!</h2>
+          <p>Fill up personal information and start journey with us.</p>
+          <router-link to="/register" class="sign-up-btn">Sign Up</router-link>
+        </div>
       </div>
     </div>
   </div>
@@ -136,183 +153,270 @@ export default {
 </script>
 
 <style scoped>
-.auth-container {
+.login-container {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #106e40 0%, #38b676 100%);
+  background-color: #f5f5f5;
   padding: 20px;
   position: relative;
   overflow: hidden;
 }
 
-.auth-container::before {
+.login-container::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
-  opacity: 0.1;
+  inset: 0;
+  z-index: 0;
+  background: url("data:image/svg+xml,%3Csvg width='600' height='400' viewBox='0 0 600 400' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cellipse cx='120' cy='100' rx='100' ry='80' fill='%23106e40' fill-opacity='0.13'/%3E%3Crect x='400' y='220' width='160' height='120' rx='60' fill='%2338b676' fill-opacity='0.11'/%3E%3Cpolygon points='520,60 590,140 450,140' fill='%23106e40' fill-opacity='0.09'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: cover;
+  pointer-events: none;
 }
 
-.auth-card {
-  width: 100%;
-  max-width: 420px;
-  background-color: white;
-  border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-  padding: 40px;
+.login-container::after {
+  content: "";
+  position: absolute;
+  left: -100px;
+  bottom: -100px;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle at 60% 40%, #38b67655 0%, transparent 80%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.login-card {
   position: relative;
   z-index: 1;
-}
-
-.logo {
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.logo img {
-  max-width: 120px;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
-}
-
-h2 {
-  text-align: center;
-  color: #106e40;
-  font-size: 1.8rem;
-  margin-bottom: 8px;
-  font-weight: 700;
-}
-
-.subtitle {
-  text-align: center;
-  color: #718096;
-  margin-bottom: 32px;
-  font-size: 0.95rem;
-}
-
-.form-group {
-  margin-bottom: 24px;
-  position: relative;
-}
-
-label {
-  display: block;
-  text-align: left;
-  margin-bottom: 8px;
-  color: #4a5568;
-  font-weight: 500;
-  font-size: 0.95rem;
-}
-
-.input-container {
-  position: relative;
-}
-
-.input-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #a0aec0;
-  font-size: 1rem;
-}
-
-input {
+  display: flex;
   width: 100%;
-  padding: 12px 12px 12px 40px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  max-width: 900px;
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
-input:focus {
-  outline: none;
-  border-color: #38b676;
-  box-shadow: 0 0 0 3px rgba(56, 182, 118, 0.1);
+.login-form-side {
+  flex: 1;
+  padding: 40px;
 }
 
-.forgot-password {
-  text-align: right;
-  margin-top: 8px;
-  font-size: 0.85rem;
-}
-
-.forgot-password a {
-  color: #38b676;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.forgot-password a:hover {
+.company-name {
+  font-size: 1.2rem;
   color: #106e40;
-  text-decoration: underline;
-}
-
-.form-actions {
-  margin-top: 32px;
-}
-
-.primary-btn {
-  width: 100%;
-  padding: 14px;
-  background-color: #106e40;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
   font-weight: 600;
+  margin-bottom: 30px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.social-login {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.social-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #e0e0e0;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.primary-btn:hover:not(:disabled) {
-  background-color: #0c5730;
-  box-shadow: 0 4px 10px rgba(16, 110, 64, 0.2);
+.social-btn:hover {
+  background: #f8f8f8;
+  transform: translateY(-2px);
 }
 
-.primary-btn:disabled {
-  background-color: #a0aec0;
-  cursor: not-allowed;
-}
-
-.auth-footer {
+.divider {
   text-align: center;
-  margin-top: 32px;
-  color: #718096;
-  font-size: 0.95rem;
+  margin: 20px 0;
+  position: relative;
 }
 
-.auth-footer a {
-  color: #38b676;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
+.divider::before,
+.divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 45%;
+  height: 1px;
+  background: #e0e0e0;
 }
 
-.auth-footer a:hover {
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+
+.divider span {
+  background: white;
+  padding: 0 15px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+  border-color: #106e40;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(16, 110, 64, 0.1);
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.forgot-link {
   color: #106e40;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.forgot-link:hover {
   text-decoration: underline;
 }
 
-.error-message {
-  background-color: #fff5f5;
-  color: #e53e3e;
+.sign-in-btn {
+  width: 100%;
   padding: 12px;
+  background: #106e40;
+  color: white;
+  border: none;
   border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.error-message::before {
-  content: "⚠️";
-  margin-right: 8px;
-  font-size: 1.1rem;
+.sign-in-btn:hover:not(:disabled) {
+  background: #0c5730;
+  transform: translateY(-2px);
+}
+
+.sign-in-btn:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
+.footer-links {
+  margin-top: 30px;
+  text-align: center;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.footer-links .dot {
+  margin: 0 8px;
+}
+
+.welcome-side {
+  flex: 1;
+  background: linear-gradient(135deg, #106e40 0%, #38b676 100%);
+  padding: 60px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+}
+
+.welcome-content {
+  max-width: 300px;
+}
+
+.welcome-content h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.welcome-content p {
+  margin-bottom: 30px;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.sign-up-btn {
+  display: inline-block;
+  padding: 12px 40px;
+  border: 2px solid white;
+  border-radius: 25px;
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.sign-up-btn:hover {
+  background: white;
+  color: #106e40;
+}
+
+.welcome-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.welcome-logo img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(16, 110, 64, 0.10);
+}
+
+@media (max-width: 768px) {
+  .login-card {
+    flex-direction: column-reverse;
+  }
+
+  .welcome-side {
+    padding: 40px 20px;
+  }
 }
 </style>
