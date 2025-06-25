@@ -17,6 +17,11 @@ import ClientBookingDetails from '../components/client/clientBookingDetails.vue'
 import ProviderBookings from '../components/provider/providerBookings.vue';
 import ProviderBookingDetails from '../components/provider/providerBookingDetails.vue';
 import message from '../components/shared/message.vue';
+import UnverifiedProviders from '../components/admin/unverifiedProviders.vue';
+import AllProviders from '../components/admin/allProviders.vue';
+import AllClients from '../components/admin/allClients.vue';
+import UserManagement from '../components/admin/userManagement.vue';
+import CategoryManagement from '../components/admin/categoryManagement.vue';
 
 const routes = [
   {
@@ -118,6 +123,36 @@ const routes = [
     name: 'Messages',
     component: message,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/unverified-providers',
+    name: 'UnverifiedProviders',
+    component: UnverifiedProviders,
+    meta: { requiresAuth: true, roles: ['ADMIN'] }
+  },
+  {
+    path: '/admin/providers',
+    name: 'AllProviders',
+    component: AllProviders,
+    meta: { requiresAuth: true, roles: ['ADMIN'] }
+  },
+  {
+    path: '/admin/clients',
+    name: 'AllClients',
+    component: AllClients,
+    meta: { requiresAuth: true, roles: ['ADMIN'] }
+  },
+  {
+    path: '/admin/user-management',
+    name: 'UserManagement',
+    component: UserManagement,
+    meta: { requiresAuth: true, roles: ['ADMIN'] }
+  },
+  {
+    path: '/admin/category-management',
+    name: 'CategoryManagement',
+    component: CategoryManagement,
+    meta: { requiresAuth: true, roles: ['ADMIN'] }
   }
 ];
 

@@ -46,120 +46,125 @@
           
           <!-- Admin links -->
           <template v-if="userRole === 'ADMIN'">
-            <router-link to="/admin/dashboard" class="nav-item">
-              <div class="icon"><i class="fas fa-tachometer-alt"></i></div>
-              <span>Dashboard</span>
+            <router-link to="/admin/unverified-providers" class="nav-item">
+              <div class="icon"><i class="fas fa-user-times"></i></div>
+              <span>Unverified Providers</span>
             </router-link>
-            <router-link to="/admin/users" class="nav-item">
+            <router-link to="/admin/providers" class="nav-item">
+              <div class="icon"><i class="fas fa-briefcase"></i></div>
+              <span>All Providers</span>
+            </router-link>
+            <router-link to="/admin/clients" class="nav-item">
               <div class="icon"><i class="fas fa-users"></i></div>
-              <span>Users</span>
+              <span>All Clients</span>
             </router-link>
-            <router-link to="/admin/services" class="nav-item">
-              <div class="icon"><i class="fas fa-cogs"></i></div>
-              <span>Services</span>
+            <router-link to="/admin/user-management" class="nav-item">
+              <div class="icon"><i class="fas fa-user-cog"></i></div>
+              <span>User Management</span>
             </router-link>
-            <router-link to="/messages" class="nav-item">
-              <div class="icon"><i class="fas fa-envelope"></i></div>
-              <span>Messages</span>
+            <router-link to="/admin/category-management" class="nav-item">
+              <div class="icon"><i class="fas fa-th-list"></i></div>
+              <span>Category Management</span>
             </router-link>
           </template>
         </div>
 
         <!-- User actions -->
         <div class="user-actions">
-          <!-- Notification item -->
-          <div class="nav-item notification-wrapper" v-if="isAuthenticated" @click="toggleNotificationDropdown" ref="notificationRef">
-            <div class="notification-icon">
-              <i class="fas fa-bell"></i>
-              <div v-if="notificationCount > 0" class="notification-badge">{{ formatCount(notificationCount) }}</div>
-            </div>
-            
-            <!-- Notifications dropdown -->
-            <div v-if="showNotificationDropdown" class="notifications-dropdown">
-              <div class="notifications-header">
-                <h3>Notifications</h3>
-                <router-link to="/notifications" class="view-all" @click="showNotificationDropdown = false">
-                  View All
-                </router-link>
+          <!-- Notification and user profile for CLIENT and PROVIDER only -->
+          <template v-if="userRole === 'CLIENT' || userRole === 'PROVIDER'">
+            <!-- Notification item -->
+            <div class="nav-item notification-wrapper" v-if="isAuthenticated" @click="toggleNotificationDropdown" ref="notificationRef">
+              <div class="notification-icon">
+                <i class="fas fa-bell"></i>
+                <div v-if="notificationCount > 0" class="notification-badge">{{ formatCount(notificationCount) }}</div>
               </div>
-              <div v-if="loadingNotifications" class="notifications-loading">
-                <div class="loading-spinner"></div>
-              </div>
-              <div v-else-if="recentNotifications.length === 0" class="no-notifications">
-                <p>No notifications</p>
-              </div>
-              <div v-else class="recent-notifications">
-                <div 
-                  v-for="notification in recentNotifications" 
-                  :key="notification.id" 
-                  :class="['notification-item', { unread: !notification.isRead }]"
-                  @click="viewNotification(notification)"
-                >
-                  <div class="notification-mini-icon">
-                    <i :class="getNotificationIcon(notification.type)"></i>
-                  </div>
-                  <div class="notification-content">
-                    <div class="notification-title">{{ notification.title }}</div>
-                    <div class="notification-time">{{ formatTime(notification.createdAt) }}</div>
+              
+              <!-- Notifications dropdown -->
+              <div v-if="showNotificationDropdown" class="notifications-dropdown">
+                <div class="notifications-header">
+                  <h3>Notifications</h3>
+                  <router-link to="/notifications" class="view-all" @click="showNotificationDropdown = false">
+                    View All
+                  </router-link>
+                </div>
+                <div v-if="loadingNotifications" class="notifications-loading">
+                  <div class="loading-spinner"></div>
+                </div>
+                <div v-else-if="recentNotifications.length === 0" class="no-notifications">
+                  <p>No notifications</p>
+                </div>
+                <div v-else class="recent-notifications">
+                  <div 
+                    v-for="notification in recentNotifications" 
+                    :key="notification.id" 
+                    :class="['notification-item', { unread: !notification.isRead }]"
+                    @click="viewNotification(notification)"
+                  >
+                    <div class="notification-mini-icon">
+                      <i :class="getNotificationIcon(notification.type)"></i>
+                    </div>
+                    <div class="notification-content">
+                      <div class="notification-title">{{ notification.title }}</div>
+                      <div class="notification-time">{{ formatTime(notification.createdAt) }}</div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          <div class="user-profile" v-if="isAuthenticated" @click="toggleUserMenu">
-            <div v-if="userAvatar" class="user-avatar-small">
-              <img :src="userAvatar" alt="Profile" />
-            </div>
-            <span class="username">{{ userName }}</span>
-            <div class="dropdown-icon"><i class="fas fa-chevron-down"></i></div>
             
-            <!-- Dropdown menu -->
-            <div class="dropdown-menu" v-if="showUserMenu">
-              <div class="dropdown-header">
-                <div class="user-avatar">
-                  <img v-if="userAvatar" :src="userAvatar" alt="Profile" />
-                  <i v-else class="fas fa-user"></i>
-                </div>
-                <span>{{ userName }}</span>
+            <div class="user-profile" v-if="isAuthenticated" @click="toggleUserMenu">
+              <div v-if="userAvatar" class="user-avatar-small">
+                <img :src="userAvatar" alt="Profile" />
               </div>
+              <span class="username">{{ userName }}</span>
+              <div class="dropdown-icon"><i class="fas fa-chevron-down"></i></div>
               
-              <!-- Client Profile Link -->
-              <template v-if="userRole === 'CLIENT'">
-                <router-link to="/client/profile" class="dropdown-item">
-                  <i class="fas fa-user-circle"></i>
-                  <span>Profile</span>
-              </router-link>
-              </template>
-              
-              <!-- Provider Profile Link -->
-              <template v-if="userRole === 'PROVIDER'">
-                <router-link to="/provider/profile" class="dropdown-item">
-                  <i class="fas fa-user-circle"></i>
-                  <span>Profile</span>
+              <!-- Dropdown menu -->
+              <div class="dropdown-menu" v-if="showUserMenu">
+                <div class="dropdown-header">
+                  <div class="user-avatar">
+                    <img v-if="userAvatar" :src="userAvatar" alt="Profile" />
+                    <i v-else class="fas fa-user"></i>
+                  </div>
+                  <span>{{ userName }}</span>
+                </div>
+                
+                <!-- Client Profile Link -->
+                <template v-if="userRole === 'CLIENT'">
+                  <router-link to="/client/profile" class="dropdown-item">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Profile</span>
+                  </router-link>
+                </template>
+                
+                <!-- Provider Profile Link -->
+                <template v-if="userRole === 'PROVIDER'">
+                  <router-link to="/provider/profile" class="dropdown-item">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Profile</span>
+                  </router-link>
+                </template>
+                
+                <router-link to="/settings" class="dropdown-item">
+                  <i class="fas fa-cog"></i>
+                  <span>Settings</span>
                 </router-link>
-              </template>
-              
-              <!-- Admin Profile Link -->
-              <template v-if="userRole === 'ADMIN'">
-                <router-link to="/admin/profile" class="dropdown-item">
-                  <i class="fas fa-user-circle"></i>
-                  <span>Profile</span>
-                </router-link>
-              </template>
-              
-              <router-link to="/settings" class="dropdown-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-              </router-link>
-              <div class="dropdown-divider"></div>
-              <div class="dropdown-item logout" @click="handleLogout">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item logout" @click="handleLogout">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>Logout</span>
+                </div>
               </div>
             </div>
-          </div>
-          
+          </template>
+          <!-- Logout only for ADMIN -->
+          <template v-if="userRole === 'ADMIN' && isAuthenticated">
+            <div class="dropdown-item logout" @click="handleLogout" style="display: flex; align-items: center; cursor: pointer; color: #f44336; padding: 12px 15px;">
+              <i class="fas fa-sign-out-alt" style="margin-right: 10px;"></i>
+              <span>Logout</span>
+            </div>
+          </template>
           <div class="auth-buttons" v-if="!isAuthenticated">
             <router-link to="/login" class="btn login-btn">Login</router-link>
             <router-link to="/register" class="btn register-btn">Register</router-link>
@@ -235,7 +240,7 @@
       </div>
 
       <!-- User dropdown menu -->
-      <div class="mobile-dropdown-menu" v-if="showUserMenu" ref="mobileDropdownRef">
+      <div class="mobile-dropdown-menu" v-if="showUserMenu && (userRole === 'CLIENT' || userRole === 'PROVIDER')" ref="mobileDropdownRef">
         <div class="dropdown-header">
           <div class="dropdown-close" @click="toggleUserMenu">
             <i class="fas fa-times"></i>
@@ -281,22 +286,6 @@
             </router-link>
           </template>
           
-          <!-- Admin Profile Link -->
-          <template v-if="userRole === 'ADMIN'">
-            <router-link to="/admin/profile" class="dropdown-item" @click="showUserMenu = false">
-              <div class="item-icon">
-                <i class="fas fa-user"></i>
-              </div>
-              <div class="item-content">
-                <span class="item-title">Profile</span>
-                <span class="item-subtitle">View your profile</span>
-              </div>
-              <div class="item-arrow">
-                <i class="fas fa-chevron-right"></i>
-              </div>
-            </router-link>
-          </template>
-
           <router-link to="/settings" class="dropdown-item" @click="showUserMenu = false">
             <div class="item-icon">
               <i class="fas fa-cog"></i>
@@ -312,6 +301,26 @@
 
           <div class="dropdown-divider"></div>
           
+          <div class="dropdown-item logout" @click="handleLogout">
+            <div class="item-icon">
+              <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="item-content">
+              <span class="item-title">Logout</span>
+              <span class="item-subtitle">Sign out from your account</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Logout only for ADMIN on mobile -->
+      <div v-if="showUserMenu && userRole === 'ADMIN' && isAuthenticated" class="mobile-dropdown-menu" ref="mobileDropdownRef">
+        <div class="dropdown-header">
+          <div class="dropdown-close" @click="toggleUserMenu">
+            <i class="fas fa-times"></i>
+          </div>
+          <span class="user-name">Admin</span>
+        </div>
+        <div class="dropdown-items">
           <div class="dropdown-item logout" @click="handleLogout">
             <div class="item-icon">
               <i class="fas fa-sign-out-alt"></i>
@@ -361,17 +370,25 @@
       
       <!-- Admin links -->
       <template v-if="userRole === 'ADMIN'">
-        <router-link to="/admin/dashboard" class="mobile-nav-item" :class="{ 'active': isRouteActive('admin/dashboard') }">
-          <div class="icon"><i class="fas fa-tachometer-alt"></i></div>
-          <span>Dashboard</span>
+        <router-link to="/admin/unverified-providers" class="mobile-nav-item" :class="{ 'active': isRouteActive('admin/unverified-providers') }">
+          <div class="icon"><i class="fas fa-user-times"></i></div>
+          <span>Unverified</span>
         </router-link>
-        <router-link to="/admin/services" class="mobile-nav-item" :class="{ 'active': isRouteActive('admin/services') }">
-          <div class="icon"><i class="fas fa-cogs"></i></div>
-          <span>Services</span>
+        <router-link to="/admin/providers" class="mobile-nav-item" :class="{ 'active': isRouteActive('admin/providers') }">
+          <div class="icon"><i class="fas fa-briefcase"></i></div>
+          <span>Providers</span>
         </router-link>
-        <router-link to="/messages" class="mobile-nav-item" :class="{ 'active': isRouteActive('messages') }">
-          <div class="icon"><i class="fas fa-envelope"></i></div>
-          <span>Messages</span>
+        <router-link to="/admin/clients" class="mobile-nav-item" :class="{ 'active': isRouteActive('admin/clients') }">
+          <div class="icon"><i class="fas fa-users"></i></div>
+          <span>Clients</span>
+        </router-link>
+        <router-link to="/admin/user-management" class="mobile-nav-item" :class="{ 'active': isRouteActive('admin/user-management') }">
+          <div class="icon"><i class="fas fa-user-cog"></i></div>
+          <span>Users</span>
+        </router-link>
+        <router-link to="/admin/category-management" class="mobile-nav-item" :class="{ 'active': isRouteActive('admin/category-management') }">
+          <div class="icon"><i class="fas fa-th-list"></i></div>
+          <span>Categories</span>
         </router-link>
       </template>
     </div>

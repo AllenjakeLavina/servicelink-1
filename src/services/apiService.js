@@ -1196,3 +1196,5 @@ export default {
   uploadProfilePicture,
   getFileUrl
 };
+
+export { getFileUrl };
