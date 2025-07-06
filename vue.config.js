@@ -1,9 +1,12 @@
-const { defineConfig } = require('@vue/cli-service')
+const { defineConfig } = require('@vue/cli-service');
+
 module.exports = defineConfig({
   transpileDependencies: true,
   publicPath: process.env.NODE_ENV === 'production' ? '/' : '/',
   devServer: {
     port: 3000,
+    host: '0.0.0.0',
+    allowedHosts: 'all',
     historyApiFallback: true
   },
   pwa: {
@@ -19,14 +22,14 @@ module.exports = defineConfig({
       exclude: [/\.map$/, /_redirects/],
       runtimeCaching: [
         {
-          urlPattern: new RegExp('http://localhost:3000/'),
+          urlPattern: /^\/api\//, // or adjust based on your API needs
           handler: 'NetworkFirst',
           options: {
             cacheName: 'api-cache',
             networkTimeoutSeconds: 5,
             expiration: {
               maxEntries: 50,
-              maxAgeSeconds: 24 * 60 * 60 // 24 hours
+              maxAgeSeconds: 86400 // 24 hours
             },
             cacheableResponse: {
               statuses: [0, 200]
@@ -34,24 +37,24 @@ module.exports = defineConfig({
           }
         },
         {
-          urlPattern: new RegExp('^https://fonts\\.googleapis\\.com/'),
+          urlPattern: /^https:\/\/fonts\.googleapis\.com\//,
           handler: 'CacheFirst',
           options: {
             cacheName: 'google-fonts',
             expiration: {
               maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+              maxAgeSeconds: 31536000 // 1 year
             }
           }
         },
         {
-          urlPattern: new RegExp('^https://cdnjs\\.cloudflare\\.com/'),
+          urlPattern: /^https:\/\/cdnjs\.cloudflare\.com\//,
           handler: 'CacheFirst',
           options: {
             cacheName: 'cdn-cache',
             expiration: {
               maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              maxAgeSeconds: 2592000 // 30 days
             }
           }
         }
@@ -68,25 +71,25 @@ module.exports = defineConfig({
       background_color: '#ffffff',
       icons: [
         {
-          src: 'http://localhost:3000/img/icons/servicelink-192x192.png',
+          src: '/img/icons/servicelink-192x192.png',
           sizes: '192x192',
           type: 'image/png',
           purpose: 'any'
         },
         {
-          src: 'http://localhost:3000/img/icons/servicelink-512x512.png',
+          src: '/img/icons/servicelink-512x512.png',
           sizes: '512x512',
           type: 'image/png',
           purpose: 'any'
         },
         {
-          src: 'http://localhost:3000/img/icons/servicelink-192x192.png',
+          src: '/img/icons/servicelink-192x192.png',
           sizes: '192x192',
           type: 'image/png',
           purpose: 'maskable'
         },
         {
-          src: 'http://localhost:3000/img/icons/servicelink-512x512.png',
+          src: '/img/icons/servicelink-512x512.png',
           sizes: '512x512',
           type: 'image/png',
           purpose: 'maskable'
@@ -94,14 +97,14 @@ module.exports = defineConfig({
       ],
       screenshots: [
         {
-          src: 'http://localhost:3000/img/screenshots/desktop.png',
+          src: '/img/screenshots/desktop.png',
           sizes: '1280x800',
           type: 'image/png',
           form_factor: 'wide',
           label: 'ServiceLink Desktop View'
         },
         {
-          src: 'http://localhost:3000/img/screenshots/mobile.png',
+          src: '/img/screenshots/mobile.png',
           sizes: '390x844',
           type: 'image/png',
           label: 'ServiceLink Mobile View'
@@ -111,4 +114,4 @@ module.exports = defineConfig({
       prefer_related_applications: false
     }
   }
-})
+});
