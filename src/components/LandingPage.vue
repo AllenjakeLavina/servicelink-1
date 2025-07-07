@@ -61,7 +61,7 @@
                   <span class="stars">★ {{ provider.rating?.toFixed(1) || '0.0' }}</span>
                   <span class="review-count">({{ provider.reviewCount || '0' }} reviews)</span>
                 </div>
-                <button @click="handleViewProfile(provider.id)" class="view-profile">View Profile</button>
+                <button @click="handleViewProfile()" class="view-profile">View Profile</button>
               </div>
             </div>
           </div>
@@ -99,13 +99,8 @@ export default {
       return apiService.getFileUrl(profilePicture);
     };
 
-    const handleViewProfile = (providerId) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        router.push(`/provider/${providerId}`);
-      } else {
-        router.push('/login');
-      }
+    const handleViewProfile = () => {
+      router.push('/login');
     };
 
     const fetchProviders = async () => {
