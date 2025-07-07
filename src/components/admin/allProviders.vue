@@ -1,6 +1,6 @@
 <template>
   <div class="all-providers">
-    <h2>All Service Providers</h2>
+    <h2 class="page-title">All Service Providers</h2>
     <div v-if="loading" class="loading">Loading...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
@@ -70,28 +70,91 @@ onMounted(fetchProviders);
 
 <style scoped>
 .all-providers {
-  max-width: 1000px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
+  background: #fff;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 20px 30px;
+  border: none;
+  min-height: calc(100vh - 80px);
+}
+.page-title {
+  text-align: center;
+  color: #4a5568;
+  margin-bottom: 30px;
+  font-size: 2.6rem;
+  font-weight: 800;
+  position: relative;
+  padding-bottom: 15px;
+  letter-spacing: -0.02em;
+}
+.page-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  border-radius: 2px;
 }
 .loading {
-  padding: 20px;
+  padding: 40px 0;
+  text-align: center;
+  color: #888;
 }
 .error {
-  color: red;
-  padding: 20px;
+  color: #e74c3c;
+  background: #fff5f5;
+  border-radius: 8px;
+  padding: 18px 0;
+  text-align: center;
+  margin-bottom: 18px;
+  font-weight: 500;
+  border-left: 5px solid #e74c3c;
 }
 .providers-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: #fff;
-  margin-top: 20px;
+  margin-top: 18px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(44, 62, 80, 0.06);
 }
 .providers-table th, .providers-table td {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+  padding: 14px 12px;
+  border-bottom: 1px solid #ececec;
   text-align: left;
+  font-size: 1rem;
 }
 .providers-table th {
-  background: #f5f5f5;
+  background: #f8f9fa;
+  font-weight: 700;
+  color: #1976d2;
+  border-bottom: 2px solid #ececec;
+}
+.providers-table tr:last-child td {
+  border-bottom: none;
+}
+.providers-table tr:hover {
+  background: #f4f8f6;
+}
+@media (max-width: 900px) {
+  .all-providers {
+    padding: 15px;
+    border-radius: 0;
+  }
+  .providers-table th, .providers-table td {
+    padding: 10px 6px;
+    font-size: 0.97rem;
+  }
+  .all-providers h2 {
+    font-size: 1.3rem;
+    margin-bottom: 18px;
+  }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="all-clients">
-    <h2>All Clients</h2>
+    <h2 class="page-title">All Clients</h2>
     <div v-if="loading" class="loading">Loading...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
@@ -71,6 +71,7 @@ onMounted(fetchClients);
 <style scoped>
 .all-clients {
   max-width: 1000px;
+  padding: 20px;
   margin: 0 auto;
 }
 .loading {
@@ -93,5 +94,26 @@ onMounted(fetchClients);
 }
 .clients-table th {
   background: #f5f5f5;
+}
+.page-title {
+  text-align: center;
+  color: #4a5568;
+  margin-bottom: 30px;
+  font-size: 2.6rem;
+  font-weight: 800;
+  position: relative;
+  padding-bottom: 15px;
+  letter-spacing: -0.02em;
+}
+.page-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  border-radius: 2px;
 }
 </style>

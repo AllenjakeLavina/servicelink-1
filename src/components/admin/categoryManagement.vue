@@ -1,6 +1,6 @@
 <template>
   <div class="category-management">
-    <h2>Category Management</h2>
+    <h2 class="page-title">Category Management</h2>
     
     <!-- Create New Category Form -->
     <div class="form-container">
@@ -271,6 +271,7 @@ onMounted(fetchCategories);
 <style scoped>
 .category-management {
   max-width: 1200px;
+  padding: 20px;
   margin: 0 auto;
 }
 
@@ -433,5 +434,28 @@ button:disabled {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 15px;
+}
+
+.page-title {
+  text-align: center;
+  color: #4a5568;
+  margin-bottom: 30px;
+  font-size: 2.6rem;
+  font-weight: 800;
+  position: relative;
+  padding-bottom: 15px;
+  letter-spacing: -0.02em;
+}
+
+.page-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  border-radius: 2px;
 }
 </style>

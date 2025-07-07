@@ -1,6 +1,6 @@
 <template>
   <div class="user-management">
-    <h2>Change User Password</h2>
+    <h2 class="page-title">Change User Password</h2>
     <div class="form-container">
       <div class="form-group">
         <label for="user-id">User ID:</label>
@@ -72,6 +72,7 @@ const changePassword = async () => {
 <style scoped>
 .user-management {
   max-width: 600px;
+  padding: 20px;
   margin: 0 auto;
 }
 .form-container {
@@ -125,5 +126,26 @@ button:disabled {
   background-color: #f8d7da;
   color: #721c24;
   border: 1px solid #f5c6cb;
+}
+.page-title {
+  text-align: center;
+  color: #4a5568;
+  margin-bottom: 30px;
+  font-size: 2.6rem;
+  font-weight: 800;
+  position: relative;
+  padding-bottom: 15px;
+  letter-spacing: -0.02em;
+}
+.page-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  border-radius: 2px;
 }
 </style>
