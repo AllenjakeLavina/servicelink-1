@@ -2,59 +2,60 @@
   <div class="category-management">
     <h2 class="page-title">Category Management</h2>
     
-    <!-- Create New Category Form -->
-    <div class="form-container">
-      <h3>Create New Category</h3>
-      <form @submit.prevent="createCategory">
-        <div class="form-group">
-          <label for="category-name">Category Name:</label>
-          <input type="text" id="category-name" v-model="newCategory.name" placeholder="Enter category name" required>
-        </div>
-        <div class="form-group">
-          <label for="category-description">Description:</label>
-          <textarea id="category-description" v-model="newCategory.description" placeholder="Enter category description" rows="3"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="category-image">Category Image:</label>
-          <input type="file" id="category-image" @change="handleImageChange" accept="image/*">
-        </div>
-        <button type="submit" :disabled="loading">Create Category</button>
-        <div v-if="createResult" :class="['result', createResult.success ? 'success' : 'error']">
-          {{ createResult.message }}
-        </div>
-      </form>
+    <!-- Create New Category Button -->
+    <div class="category-action-bar">
+      <button class="primary-btn" @click="showCreateForm = true">
+        <i class="fa fa-plus-circle"></i> Create New Category
+      </button>
+    </div>
+    <!-- Create New Category Modal -->
+    <div v-if="showCreateForm" class="modal">
+      <div class="modal-content">
+        <span class="close-button" @click="showCreateForm = false">&times;</span>
+        <h3>Create New Category</h3>
+        <form @submit.prevent="createCategory">
+          <div class="form-group">
+            <label for="category-name">Category Name:</label>
+            <input type="text" id="category-name" v-model="newCategory.name" placeholder="Enter category name" required>
+          </div>
+          <div class="form-group">
+            <label for="category-description">Description:</label>
+            <textarea id="category-description" v-model="newCategory.description" placeholder="Enter category description" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="category-image">Category Image:</label>
+            <input type="file" id="category-image" @change="handleImageChange" accept="image/*">
+          </div>
+          <button type="submit" :disabled="loading" class="submit-btn">Create Category</button>
+          <div v-if="createResult" :class="['result', createResult.success ? 'success' : 'error']">
+            {{ createResult.message }}
+          </div>
+        </form>
+      </div>
     </div>
 
-    <!-- Existing Categories -->
+    <!-- Existing Categories as Cards -->
     <div class="categories-container">
       <h3>Existing Categories</h3>
       <div v-if="loadingCategories" class="loading">Loading...</div>
       <div v-else-if="categoriesError" class="error">{{ categoriesError }}</div>
       <div v-else>
         <div v-if="categories.length === 0">No categories found</div>
-        <table v-else class="categories-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Image</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="category in categories" :key="category.id">
-              <td>{{ category.name }}</td>
-              <td>{{ category.description || 'No description' }}</td>
-              <td>
-                <img v-if="category.imageUrl" :src="getFileUrl(category.imageUrl)" width="50" height="50" :alt="category.name">
-                <span v-else>No image</span>
-              </td>
-              <td>
-                <button @click="openEditModal(category)" class="edit-btn">Edit</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div v-else class="category-list">
+          <div v-for="category in categories" :key="category.id" class="category-card">
+            <div class="category-image-box">
+              <img v-if="category.imageUrl" :src="getFileUrl(category.imageUrl)" :alt="category.name" class="category-img" />
+              <div v-else class="category-img-placeholder"><i class="fa fa-image"></i></div>
+            </div>
+            <div class="category-info">
+              <div class="category-title">{{ category.name }}</div>
+              <div class="category-desc">{{ category.description || 'No description' }}</div>
+            </div>
+            <div class="category-actions">
+              <button @click="openEditModal(category)" class="edit-btn">Edit</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -121,6 +122,8 @@ const editingCategory = ref({
   imageUrl: '',
   image: null
 });
+
+const showCreateForm = ref(false);
 
 const getFileUrl = apiGetFileUrl;
 
@@ -270,9 +273,10 @@ onMounted(fetchCategories);
 
 <style scoped>
 .category-management {
-  max-width: 1200px;
-  padding: 20px;
-  margin: 0 auto;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  /* Remove max-width, center, etc */
 }
 
 .form-container {
@@ -284,10 +288,12 @@ onMounted(fetchCategories);
 }
 
 .categories-container {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 20px 30px;
+  margin: 0;
 }
 
 .form-group {
@@ -437,6 +443,7 @@ button:disabled {
 }
 
 .page-title {
+  margin-top: 20px;
   text-align: center;
   color: #4a5568;
   margin-bottom: 30px;
@@ -457,5 +464,170 @@ button:disabled {
   height: 4px;
   background: linear-gradient(90deg, #3498db, #2ecc71);
   border-radius: 2px;
+}
+
+/* Action bar for create button */
+.category-action-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+.primary-btn {
+  background: linear-gradient(135deg, #4caf50, #2e8b57);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.2);
+}
+.primary-btn:hover {
+  background: linear-gradient(135deg, #2e8b57, #4caf50);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(76, 175, 80, 0.3);
+}
+/* Match providerServices.vue card grid and card style */
+.category-list {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 25px;
+  margin-top: 18px;
+}
+.category-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  margin-bottom: 25px;
+  padding: 25px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0,0,0,0.05);
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.category-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+.category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+.category-card:hover::before {
+  transform: scaleX(1);
+}
+.category-image-box {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.category-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.category-img-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bdbdbd;
+  font-size: 2rem;
+}
+.category-info {
+  flex: 1;
+  width: 100%;
+  margin-bottom: 10px;
+}
+.category-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+.category-desc {
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 0;
+  padding: 10px 0 0 0;
+}
+.category-actions {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+.edit-btn {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  color: white;
+  padding: 12px 50px;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.edit-btn:hover {
+  background: linear-gradient(135deg, #1976d2, #0d47a1);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(33, 150, 243, 0.3);
+}
+@media screen and (max-width: 1600px) {
+  .category-list {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+@media screen and (max-width: 1200px) {
+  .category-list {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+@media screen and (max-width: 768px) {
+  .category-list {
+    grid-template-columns: 1fr;
+  }
+  .category-card {
+    padding: 15px;
+  }
+  .categories-container {
+    padding: 15px;
+  }
+}
+@media screen and (max-width: 480px) {
+  .categories-container {
+    padding: 10px;
+  }
 }
 </style>

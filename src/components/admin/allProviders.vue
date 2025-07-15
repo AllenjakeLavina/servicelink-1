@@ -42,7 +42,7 @@
       <div v-else-if="selectedProviderProfile" class="modal-profile-content">
         <div class="modal-profile-top">
           <div class="modal-profile-avatar">
-            <img v-if="selectedProviderProfile.profilePicture" :src="selectedProviderProfile.profilePicture" alt="Profile Picture" />
+            <img v-if="selectedProviderProfile.profilePicture" :src="getFileUrl(selectedProviderProfile.profilePicture)" alt="Profile Picture" />
             <div v-else class="modal-placeholder-img"><i class="fas fa-user"></i></div>
           </div>
           <div class="modal-profile-name-email">
@@ -62,10 +62,13 @@
         <div class="modal-section-card">
           <h3><i class="fas fa-briefcase"></i> Work Experience</h3>
           <div v-if="selectedProviderProfile.workExperience?.length">
-            <div v-for="exp in selectedProviderProfile.workExperience" :key="exp.id" class="modal-exp-item">
-              <div class="modal-exp-title">{{ exp.position }} <span class="at-company">@ {{ exp.company }}</span></div>
-              <div class="modal-exp-dates">{{ exp.startDate }} - {{ exp.isCurrentPosition ? 'Present' : exp.endDate }}</div>
-              <div class="modal-exp-desc">{{ exp.description }}</div>
+            <div v-for="exp in selectedProviderProfile.workExperience" :key="exp.id" class="modal-exp-item-redesign">
+              <div class="exp-header">
+                <div class="exp-title">{{ exp.position }}</div>
+                <div class="exp-dates">{{ exp.startDate ? formatDate(exp.startDate) : '' }}<span v-if="exp.startDate || exp.endDate"> - </span>{{ exp.isCurrentPosition ? 'Present' : (exp.endDate ? formatDate(exp.endDate) : '') }}</div>
+              </div>
+              <div v-if="exp.company" class="exp-company">{{ exp.company }}</div>
+              <div v-if="exp.description" class="exp-desc">{{ exp.description }}</div>
             </div>
           </div>
           <div v-else class="modal-no-data">No work experience listed.</div>
@@ -73,10 +76,13 @@
         <div class="modal-section-card">
           <h3><i class="fas fa-graduation-cap"></i> Education</h3>
           <div v-if="selectedProviderProfile.education?.length">
-            <div v-for="edu in selectedProviderProfile.education" :key="edu.id" class="modal-edu-item">
-              <div class="modal-edu-title">{{ edu.degree }} <span v-if="edu.fieldOfStudy">in {{ edu.fieldOfStudy }}</span></div>
-              <div class="modal-edu-school">{{ edu.institution }}</div>
-              <div class="modal-edu-dates">{{ edu.startDate }} - {{ edu.isCurrentlyStudying ? 'Present' : edu.endDate }}</div>
+            <div v-for="edu in selectedProviderProfile.education" :key="edu.id" class="modal-edu-item-redesign">
+              <div class="edu-header">
+                <div class="edu-title">{{ edu.degree }}</div>
+                <div class="edu-dates">{{ edu.startDate ? formatDate(edu.startDate) : '' }}<span v-if="edu.startDate || edu.endDate"> - </span>{{ edu.isCurrentlyStudying ? 'Present' : (edu.endDate ? formatDate(edu.endDate) : '') }}</div>
+              </div>
+              <div v-if="edu.fieldOfStudy" class="edu-field">{{ edu.fieldOfStudy }}</div>
+              <div v-if="edu.institution" class="edu-school">{{ edu.institution }}</div>
             </div>
           </div>
           <div v-else class="modal-no-data">No education listed.</div>
@@ -98,7 +104,12 @@
               <div v-if="item.files && item.files.length" class="modal-portfolio-files">
                 <ul>
                   <li v-for="file in item.files" :key="file.id">
-                    <a :href="file.fileUrl" target="_blank">{{ file.fileUrl.split('/').pop() }}</a>
+                    <template v-if="isImageFile(file.fileUrl)">
+                      <img :src="getFileUrl(file.fileUrl)" :alt="file.fileUrl.split('/').pop()" style="max-width: 120px; max-height: 90px; border-radius: 8px; margin-bottom: 4px; display: block; cursor:pointer;" @click="openFullscreenImg(getFileUrl(file.fileUrl))" />
+                    </template>
+                    <template v-else>
+                      <a :href="getFileUrl(file.fileUrl)" target="_blank">{{ file.fileUrl.split('/').pop() }}</a>
+                    </template>
                   </li>
                 </ul>
               </div>
@@ -109,11 +120,16 @@
       </div>
     </div>
   </div>
+  <!-- Fullscreen Image Overlay -->
+  <div v-if="fullscreenImg" class="fullscreen-img-overlay" @click.self="closeFullscreenImg">
+    <img :src="fullscreenImg" class="fullscreen-img" />
+    <button class="fullscreen-img-close" @click="closeFullscreenImg">&times;</button>
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { providerService } from '../../services/apiService';
+import { providerService, getFileUrl } from '../../services/apiService';
 
 const API_BASE_URL = 'http://localhost:5500/api';
 const providers = ref([]);
@@ -125,6 +141,11 @@ const showProfileModal = ref(false);
 const selectedProviderProfile = ref(null);
 const profileLoading = ref(false);
 const profileError = ref('');
+
+// Fullscreen image viewer for portfolio
+const fullscreenImg = ref(null);
+function openFullscreenImg(url) { fullscreenImg.value = url; }
+function closeFullscreenImg() { fullscreenImg.value = null; }
 
 const fetchProviders = async () => {
   loading.value = true;
@@ -177,6 +198,20 @@ const closeProfileModal = () => {
   profileError.value = '';
 };
 
+// Helper to check if a file is an image
+const isImageFile = (fileUrl) => {
+  if (!fileUrl) return false;
+  const ext = fileUrl.split('.').pop().toLowerCase();
+  return ['jpg','jpeg','png','gif','webp'].includes(ext);
+};
+
+// Format date for display
+function formatDate(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+}
+
 onMounted(fetchProviders);
 </script>
 
@@ -227,6 +262,7 @@ onMounted(fetchProviders);
   font-weight: 500;
   border-left: 5px solid #e74c3c;
 }
+/* Responsive table and modal */
 .providers-table {
   width: 100%;
   border-collapse: separate;
@@ -263,11 +299,24 @@ onMounted(fetchProviders);
   .providers-table th, .providers-table td {
     padding: 10px 6px;
     font-size: 0.97rem;
+    white-space: nowrap;
   }
   .all-providers h2 {
     font-size: 1.3rem;
     margin-bottom: 18px;
   }
+  .providers-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .modal-profile-content { padding: 0 6px; }
+  .profile-modal-container { padding: 0 0 18px 0; }
+  .modal-section-card { padding: 12px 6px 8px 6px; }
+  .modal-profile-details-grid { grid-template-columns: 1fr; gap: 8px 0; }
+  .modal-profile-avatar { width: 70px; height: 70px; }
+  .modal-profile-avatar img { max-width: 70px; max-height: 70px; }
+  .modal-portfolio-files img { max-width: 80px; max-height: 60px; }
 }
 /* Modal Styles */
 .profile-modal-overlay {
@@ -483,5 +532,117 @@ onMounted(fetchProviders);
   .profile-modal-container { padding: 0 0 18px 0; }
   .modal-section-card { padding: 12px 6px 8px 6px; }
   .modal-profile-details-grid { grid-template-columns: 1fr; gap: 8px 0; }
+}
+/* Fullscreen Image Overlay */
+.fullscreen-img-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.96);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.22s cubic-bezier(.4,0,.2,1);
+  padding: 0;
+}
+.fullscreen-img {
+  max-width: 88vw;
+  max-height: 88vh;
+  border-radius: 18px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.45);
+  background: #fff;
+  margin: 32px 0 24px 0;
+  animation: imgPopIn 0.28s cubic-bezier(.4,0,.2,1);
+  display: block;
+}
+@keyframes imgPopIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+.fullscreen-img-close {
+  position: fixed;
+  top: 36px;
+  right: 56px;
+  font-size: 2.5rem;
+  color: #fff;
+  background: rgba(0,0,0,0.55);
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 3100;
+  transition: background 0.18s, color 0.18s, transform 0.13s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.fullscreen-img-close:hover {
+  background: #38b676;
+  color: #fff;
+  transform: scale(1.12);
+}
+@media (max-width: 900px) {
+  .fullscreen-img {
+    max-width: 98vw;
+    max-height: 70vh;
+    margin: 16px 0 12px 0;
+  }
+  .fullscreen-img-close {
+    top: 12px;
+    right: 12px;
+    font-size: 2rem;
+    width: 38px;
+    height: 38px;
+  }
+}
+/* Add redesign styles for work/edu */
+.modal-exp-item-redesign, .modal-edu-item-redesign {
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eaeaea;
+}
+.modal-exp-item-redesign:last-child, .modal-edu-item-redesign:last-child {
+  border-bottom: none;
+}
+.exp-header, .edu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.exp-title, .edu-title {
+  font-weight: 700;
+  color: #1976d2;
+  font-size: 1.08rem;
+}
+.exp-dates, .edu-dates {
+  color: #27ae60;
+  font-size: 0.97rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.exp-company {
+  color: #888;
+  font-weight: 500;
+  font-size: 0.98rem;
+  margin-top: 2px;
+}
+.exp-desc {
+  color: #444;
+  font-size: 0.97rem;
+  margin-top: 4px;
+}
+.edu-field {
+  color: #555;
+  font-size: 0.97rem;
+  margin-top: 2px;
+}
+.edu-school {
+  color: #888;
+  font-weight: 500;
+  font-size: 0.98rem;
+  margin-top: 2px;
 }
 </style>
