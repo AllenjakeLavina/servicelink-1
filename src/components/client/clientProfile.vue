@@ -2,28 +2,25 @@
   <div class="client-profile">
     <div v-if="loading" class="loading">Loading...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
-    <div v-else class="profile-container">
-      <!-- Profile Section -->
-      <div class="profile-section">
-        <h2>My Profile</h2>
-        
-        <div v-if="!isEditingProfile" class="profile-info">
-          <div class="profile-header">
-            <div class="profile-picture-container">
+    <div v-else>
+      <!-- Profile Header Card -->
+      <div class="profile-header-card">
+        <div class="profile-banner">
+          <img src="@/assets/Header.png" alt="Banner" />
+        </div>
+        <div class="profile-header-content-row">
+          <div class="profile-picture-outer">
+            <div class="profile-picture-container large">
               <div v-if="user.profilePicture" class="profile-picture">
                 <img :src="getFullFileUrl(user.profilePicture)" alt="Profile Picture" />
               </div>
               <div v-else class="profile-picture placeholder-img">
                 <div class="profile-initials">{{ getUserInitials }}</div>
               </div>
-              
-              <!-- Add upload overlay and functionality -->
               <div class="profile-picture-overlay" @click="triggerFileUpload">
                 <i class="fas fa-camera"></i>
                 <span>Change Photo</span>
               </div>
-              
-              <!-- Hidden file input -->
               <input 
                 type="file" 
                 ref="profileImageInput" 
@@ -31,109 +28,60 @@
                 accept="image/*" 
                 class="hidden-input" 
               />
-              
-              <!-- Upload progress indicator -->
               <div v-if="uploadingProfileImage" class="upload-progress">
                 <div class="spinner"></div>
               </div>
             </div>
-            <div class="profile-name">
-              <h3>{{ user.firstName }} {{ user.lastName }}</h3>
-              <p>{{ user.email }}</p>
-            </div>
           </div>
-
-          <div class="profile-details">
-            <div class="detail-item">
-              <strong>Phone:</strong> {{ user.phone || 'Not provided' }}
+          <div class="profile-header-info">
+            <div class="profile-header-name">{{ user.firstName }} {{ user.lastName }}</div>
+            <div class="profile-header-role">Client</div>
+            <div class="profile-header-meta">
+              <span><i class="fas fa-envelope"></i> {{ user.email }}</span>
+              <span v-if="user.phone"><i class="fas fa-phone"></i> {{ user.phone }}</span>
             </div>
-            <div class="actions">
-              <button class="edit-btn" @click="startEditProfile">Edit Profile</button>
-            </div>
+            <button class="edit-profile-btn profile-btn-card" @click="isEditingProfile = true"><i class="fas fa-edit"></i> Edit Profile</button>
           </div>
-        </div>
-
-        <!-- Edit Profile Form -->
-        <div v-else class="edit-profile-form">
-          <form @submit.prevent="updateProfile">
-            <div class="form-group">
-              <label for="firstName">First Name</label>
-              <input 
-                id="firstName" 
-                v-model="profileForm.firstName" 
-                type="text" 
-                required 
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="lastName">Last Name</label>
-              <input 
-                id="lastName" 
-                v-model="profileForm.lastName" 
-                type="text" 
-                required 
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="phone">Phone Number</label>
-              <input 
-                id="phone" 
-                v-model="profileForm.phone" 
-                type="tel" 
-              />
-            </div>
-
-            <div class="form-actions">
-              <button type="button" class="cancel-btn" @click="cancelEditProfile">Cancel</button>
-              <button type="submit" class="save-btn" :disabled="isSubmitting">
-                {{ isSubmitting ? 'Saving...' : 'Save' }}
-              </button>
-            </div>
-          </form>
         </div>
       </div>
-
       <!-- Addresses Section -->
-      <div class="addresses-section">
-        <div class="section-header">
-          <h2>My Addresses</h2>
-          <button class="add-btn" @click="showAddAddressForm = true">Add Address</button>
-        </div>
-
-        <div v-if="addresses.length === 0" class="no-addresses">
-          <p>You haven't added any addresses yet.</p>
-        </div>
-
-        <div v-else class="address-list">
-          <div v-for="address in addresses" :key="address.id" class="address-card" :class="{ 'default-address': address.isDefault }">
-            <div v-if="address.isDefault" class="default-badge">Default</div>
-            <div class="address-type">{{ formatAddressType(address.type) }}</div>
-            <div class="address-content">
-              <p>{{ address.addressLine1 }}</p>
-              <p v-if="address.addressLine2">{{ address.addressLine2 }}</p>
-              <p>{{ address.city }}, {{ address.state }} {{ address.postalCode }}</p>
-              <p>{{ address.country }}</p>
-            </div>
-            <div class="address-actions">
-              <button class="edit-address-btn" @click="editAddress(address)">Edit</button>
-              <button class="delete-btn" @click="deleteAddress(address.id)">Delete</button>
-              <button 
-                v-if="!address.isDefault" 
-                class="default-btn" 
-                @click="setDefaultAddress(address.id)"
-              >
-                Set as Default
-              </button>
+      <div class="section">
+        <div class="addresses-section">
+          <div class="section-header">
+            <h2>My Addresses</h2>
+            <button class="add-btn" @click="showAddAddressForm = true">Add Address</button>
+          </div>
+          <div v-if="addresses.length === 0" class="no-addresses">
+            <p>You haven't added any addresses yet.</p>
+          </div>
+          <div v-else class="address-list">
+            <div v-for="address in addresses" :key="address.id" class="address-card" :class="{ 'default-address': address.isDefault }">
+              <div v-if="address.isDefault" class="default-badge">Default</div>
+              <div class="address-type">{{ formatAddressType(address.type) }}</div>
+              <div class="address-content">
+                <p>{{ address.addressLine1 }}</p>
+                <p v-if="address.addressLine2">{{ address.addressLine2 }}</p>
+                <p>{{ address.city }}, {{ address.state }} {{ address.postalCode }}</p>
+                <p>{{ address.country }}</p>
+              </div>
+              <div class="address-actions">
+                <button class="edit-address-btn" @click="editAddress(address)">Edit</button>
+                <button class="delete-btn" @click="deleteAddress(address.id)">Delete</button>
+                <button 
+                  v-if="!address.isDefault" 
+                  class="default-btn" 
+                  @click="setDefaultAddress(address.id)"
+                >
+                  Set as Default
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
       <!-- Add Address Modal -->
-      <div v-if="showAddAddressForm" class="modal">
-        <div class="modal-content">
+      <div v-if="showAddAddressForm" class="modal-overlay">
+        <div class="modal-card">
           <span class="close-btn" @click="showAddAddressForm = false">&times;</span>
           <h2>Add New Address</h2>
           <form @submit.prevent="addAddress" class="address-form">
@@ -145,46 +93,38 @@
                 <option value="OTHER">Other</option>
               </select>
             </div>
-
             <div class="form-group">
               <label for="addressLine1">Address Line 1*</label>
               <input id="addressLine1" v-model="addressForm.addressLine1" required />
             </div>
-
             <div class="form-group">
               <label for="addressLine2">Address Line 2</label>
               <input id="addressLine2" v-model="addressForm.addressLine2" />
             </div>
-
             <div class="form-row">
               <div class="form-group">
                 <label for="city">City*</label>
                 <input id="city" v-model="addressForm.city" required />
               </div>
-
               <div class="form-group">
                 <label for="state">State/Province*</label>
                 <input id="state" v-model="addressForm.state" required />
               </div>
             </div>
-
             <div class="form-row">
               <div class="form-group">
                 <label for="postalCode">Postal Code*</label>
                 <input id="postalCode" v-model="addressForm.postalCode" required />
               </div>
-
               <div class="form-group">
                 <label for="country">Country*</label>
                 <input id="country" v-model="addressForm.country" required />
               </div>
             </div>
-
             <div class="form-group checkbox">
               <input id="isDefault" type="checkbox" v-model="addressForm.isDefault" />
               <label for="isDefault">Set as default address</label>
             </div>
-
             <div class="form-actions">
               <button type="button" class="cancel-btn" @click="showAddAddressForm = false">Cancel</button>
               <button type="submit" class="save-btn" :disabled="isSubmitting">
@@ -194,10 +134,9 @@
           </form>
         </div>
       </div>
-
       <!-- Edit Address Modal -->
-      <div v-if="showEditAddressForm" class="modal">
-        <div class="modal-content">
+      <div v-if="showEditAddressForm" class="modal-overlay">
+        <div class="modal-card">
           <span class="close-btn" @click="showEditAddressForm = false">&times;</span>
           <h2>Edit Address</h2>
           <form @submit.prevent="updateAddress" class="address-form">
@@ -209,46 +148,38 @@
                 <option value="OTHER">Other</option>
               </select>
             </div>
-
             <div class="form-group">
               <label for="editAddressLine1">Address Line 1*</label>
               <input id="editAddressLine1" v-model="editAddressForm.addressLine1" required />
             </div>
-
             <div class="form-group">
               <label for="editAddressLine2">Address Line 2</label>
               <input id="editAddressLine2" v-model="editAddressForm.addressLine2" />
             </div>
-
             <div class="form-row">
               <div class="form-group">
                 <label for="editCity">City*</label>
                 <input id="editCity" v-model="editAddressForm.city" required />
               </div>
-
               <div class="form-group">
                 <label for="editState">State/Province*</label>
                 <input id="editState" v-model="editAddressForm.state" required />
               </div>
             </div>
-
             <div class="form-row">
               <div class="form-group">
                 <label for="editPostalCode">Postal Code*</label>
                 <input id="editPostalCode" v-model="editAddressForm.postalCode" required />
               </div>
-
               <div class="form-group">
                 <label for="editCountry">Country*</label>
                 <input id="editCountry" v-model="editAddressForm.country" required />
               </div>
             </div>
-
             <div class="form-group checkbox">
               <input id="editIsDefault" type="checkbox" v-model="editAddressForm.isDefault" />
               <label for="editIsDefault">Set as default address</label>
             </div>
-
             <div class="form-actions">
               <button type="button" class="cancel-btn" @click="showEditAddressForm = false">Cancel</button>
               <button type="submit" class="save-btn" :disabled="isSubmitting">
@@ -258,10 +189,50 @@
           </form>
         </div>
       </div>
-
+      <!-- Edit Profile Modal -->
+      <div v-if="isEditingProfile" class="modal-overlay">
+        <div class="modal-card">
+          <span class="close-btn" @click="cancelEditProfile">&times;</span>
+          <h2>Edit Profile</h2>
+          <form @submit.prevent="updateProfile" class="edit-profile-form">
+            <div class="form-group">
+              <label for="firstName">First Name</label>
+              <input 
+                id="firstName" 
+                v-model="profileForm.firstName" 
+                type="text" 
+                required 
+              />
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last Name</label>
+              <input 
+                id="lastName" 
+                v-model="profileForm.lastName" 
+                type="text" 
+                required 
+              />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input 
+                id="phone" 
+                v-model="profileForm.phone" 
+                type="tel" 
+              />
+            </div>
+            <div class="form-actions">
+              <button type="button" class="cancel-btn" @click="cancelEditProfile">Cancel</button>
+              <button type="submit" class="save-btn" :disabled="isSubmitting">
+                {{ isSubmitting ? 'Saving...' : 'Save' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
       <!-- Confirmation Dialog -->
-      <div v-if="showConfirmDialog" class="modal">
-        <div class="modal-content confirm-dialog">
+      <div v-if="showConfirmDialog" class="modal-overlay">
+        <div class="modal-card confirm-dialog">
           <h3>Confirm Delete</h3>
           <p>Are you sure you want to delete this address?</p>
           <div class="form-actions">
@@ -614,6 +585,8 @@ export default {
       fetchClientProfile();
     });
     
+    const activeTab = ref('profile');
+    
     return {
       user,
       addresses,
@@ -643,49 +616,151 @@ export default {
       uploadingProfileImage,
       triggerFileUpload,
       handleProfileImageChange,
-      getFullFileUrl
+      getFullFileUrl,
+      activeTab
     };
   }
 };
 </script>
 
 <style scoped>
+/* Base Styles */
 .client-profile {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 20px;
+  max-width: 100vw;
+  width: 100%;
+  margin: 0;
+  padding: 30px;
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #f7f9fc;
+  min-height: 100vh;
+  color: #2d3748;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
-.profile-container {
+h1 {
+  text-align: center;
+  color: #4a5568;
+  margin-bottom: 30px;
+  font-weight: 800;
+  font-size: 2.6rem;
+  position: relative;
+  padding-bottom: 0;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  color: #4a5568;
+  font-weight: 700;
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 20px;
+  position: relative;
+  display: inline-block;
+  letter-spacing: -0.01em;
+}
+
+.profile-tabs {
   display: flex;
-  flex-direction: column;
-  gap: 30px;
+  gap: 10px;
+  margin-bottom: 40px;
+  border-bottom: none;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  justify-content: center;
 }
 
-.profile-section, .addresses-section {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  padding: 20px;
+.tab {
+  padding: 14px 24px;
+  cursor: pointer;
+  transition: all 0.3s;
+  background-color: white;
+  border-radius: 16px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  color: #4a5568;
+  font-size: 0.95rem;
+  border: 1px solid #e2e8f0;
+}
+
+.tab:hover {
+  background-color: #f8fafc;
+  color: #4a5568;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.tab.active {
+  background: #27ae60;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 8px 16px rgba(39, 174, 96, 0.15);
+  transform: translateY(-2px);
+  border-color: #27ae60;
+}
+
+.tab i {
+  font-size: 18px;
+  color: #718096;
+}
+
+.tab.active i {
+  color: white;
+}
+
+.section {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  padding: 35px;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.08);
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-}
-
-h2 {
-  color: #333;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
+  border-bottom: 1px solid #edf2f7;
+  padding-bottom: 20px;
 }
 
 .profile-header {
   display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 40px;
   align-items: center;
+  position: relative;
+  padding: 40px;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
 }
 
 .profile-picture-container {
@@ -696,6 +771,7 @@ h2 {
   overflow: hidden;
   background-color: #e0e0e0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin: 0 auto;
 }
 
 .profile-picture {
@@ -710,6 +786,7 @@ h2 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .placeholder-img {
@@ -717,6 +794,9 @@ h2 {
   align-items: center;
   justify-content: center;
   background-color: #e0e0e0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
 }
 
 .profile-initials {
@@ -752,8 +832,12 @@ h2 {
 }
 
 .profile-picture-overlay span {
-  font-size: 11px;
+  font-size: 14px;
   text-align: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 5px;
 }
 
 .hidden-input {
@@ -797,62 +881,90 @@ h2 {
 }
 
 .profile-details {
-  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  margin-top: 40px;
 }
 
 .detail-item {
-  margin-bottom: 10px;
+  padding: 25px;
+  background: white;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.detail-item:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.08);
 }
 
 .actions {
   margin-top: 20px;
 }
 
-.edit-btn, .add-btn, .save-btn, .cancel-btn, .delete-btn, .default-btn {
-  padding: 10px 15px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.edit-btn, .add-btn, .save-btn {
-  background-color: #4caf50;
+.edit-btn, .add-btn {
+  background: #27ae60;
   color: white;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.15);
+  font-size: 0.95rem;
 }
 
-.edit-btn:hover, .add-btn:hover, .save-btn:hover {
-  background-color: #45a049;
+.edit-btn:hover, .add-btn:hover {
+  background: #219d55;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(39, 174, 96, 0.2);
+}
+
+.save-btn {
+  background: #27ae60;
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.15);
+  font-size: 1rem;
+}
+
+.save-btn:hover {
+  background: #219d55;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(39, 174, 96, 0.2);
 }
 
 .cancel-btn {
-  background-color: #f1f1f1;
-  color: #333;
-  margin-right: 10px;
+  background: white;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  padding: 14px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 1rem;
 }
 
 .cancel-btn:hover {
-  background-color: #e0e0e0;
-}
-
-.delete-btn {
-  background-color: #f44336;
-  color: white;
-}
-
-.delete-btn:hover {
-  background-color: #d32f2f;
-}
-
-.default-btn, .edit-address-btn {
-  background-color: #2196F3;
-  color: white;
-  margin-right: 10px;
-}
-
-.default-btn:hover, .edit-address-btn:hover {
-  background-color: #0b7dda;
+  background: #f8fafc;
+  color: #27ae60;
+  border-color: #27ae60;
+  transform: translateY(-3px);
 }
 
 .edit-profile-form, .address-form {
@@ -860,20 +972,35 @@ h2 {
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 25px;
+  position: relative;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #27ae60;
+  font-size: 0.95rem;
 }
 
 .form-group input, .form-group select {
   width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 14px 18px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  background-color: #f9f9f9;
+  color: #333;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.form-group input:focus, .form-group select:focus {
+  border-color: #27ae60;
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.15);
+  outline: none;
+  background-color: #fff;
 }
 
 .form-row {
@@ -889,6 +1016,7 @@ h2 {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+  gap: 15px;
 }
 
 .checkbox {
@@ -908,15 +1036,28 @@ h2 {
 
 .address-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 25px;
+  margin-top: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .address-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 30px;
   position: relative;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.address-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.08);
 }
 
 .default-address {
@@ -953,96 +1094,296 @@ h2 {
   font-weight: bold;
 }
 
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: white;
-  border-radius: 8px;
-  padding: 20px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-}
-
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 24px;
-  font-weight: bold;
-  cursor: pointer;
-  color: #aaa;
-}
-
-.close-btn:hover {
-  color: #333;
-}
-
-.confirm-dialog {
-  text-align: center;
-  max-width: 400px;
-  padding: 30px;
-}
-
-.confirm-dialog h3 {
-  margin-top: 0;
-}
-
-.delete-confirm-btn {
-  background-color: #f44336;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 15px;
-  cursor: pointer;
-}
-
-.delete-confirm-btn:hover {
-  background-color: #d32f2f;
-}
-
 .loading {
   text-align: center;
-  padding: 50px;
+  padding: 40px;
   font-size: 18px;
+  color: #607d8b;
 }
 
 .error {
+  text-align: center;
+  padding: 20px;
   color: #f44336;
   background-color: #ffebee;
-  padding: 15px;
-  border-radius: 4px;
-  margin-bottom: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  border: 1px solid #ffcdd2;
 }
 
 .no-addresses {
+  color: #777;
+  margin: 40px 0;
   text-align: center;
-  padding: 30px;
-  color: #757575;
-  font-style: italic;
+  padding: 50px 30px;
+  background: linear-gradient(135deg, #f9f9f9, #f5f5f5);
+  border-radius: 18px;
+  border: 2px dashed rgba(39, 174, 96, 0.2);
+  position: relative;
+  overflow: hidden;
 }
 
-@media (max-width: 600px) {
-  .form-row {
+.no-addresses p {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #27ae60;
+}
+
+.profile-header-card {
+  width: 100%;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  margin-bottom: 40px;
+  position: relative;
+  overflow: visible;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-bottom: 20px;
+  box-sizing: border-box;
+}
+.profile-banner {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  position: relative;
+}
+.profile-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.profile-header-content-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: -70px;
+  padding-left: 48px;
+  padding-right: 32px;
+  gap: 30px;
+  box-sizing: border-box;
+}
+.profile-picture-outer {
+  position: relative;
+  z-index: 2;
+  margin-right: 32px;
+}
+.profile-picture-container.large {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin: 0;
+}
+.profile-picture-container.large .profile-picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.profile-picture-container.large .profile-initials {
+  font-size: 48px;
+}
+.profile-header-info {
+  margin-top: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  gap: 10px;
+  flex: 1;
+}
+.profile-header-name {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+.profile-header-role {
+  font-size: 1.1rem;
+  color: #27ae60;
+  font-weight: 600;
+  margin-top: 20px;
+}
+.profile-header-meta {
+  margin-top: 10px;
+  color: #555;
+  font-size: 1rem;
+  display: flex;
+  gap: 1px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+.profile-header-meta i {
+  margin-right: 6px;
+  color: #27ae60;
+}
+.profile-header-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.edit-profile-btn {
+  background: #2196F3;
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+  transition: all 0.2s;
+}
+.edit-profile-btn:hover {
+  background: #1976d2;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.35);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 40px 32px 32px 32px;
+  min-width: 350px;
+  max-width: 95vw;
+  width: 480px;
+  position: relative;
+  animation: modalPop 0.2s cubic-bezier(.4,2,.6,1) 1;
+}
+@keyframes modalPop {
+  0% { transform: scale(0.95) translateY(30px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.close-btn {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.2s;
+  z-index: 10;
+}
+.close-btn:hover {
+  color: #2196F3;
+}
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
+  border-bottom: 1px solid #edf2f7;
+  padding-bottom: 20px;
+}
+.section-actions {
+  display: flex;
+  gap: 12px;
+}
+.edit-profile-desktop { display: inline-flex; }
+.edit-profile-mobile { display: none; }
+@media (max-width: 700px) {
+  .edit-profile-desktop { display: none !important; }
+  .edit-profile-mobile { display: inline-flex !important; width: 100%; margin-bottom: 10px; }
+  .section-actions { flex-direction: column; gap: 10px; width: 100%; }
+  .add-btn { width: 100%; }
+}
+.profile-btn-card {
+  margin-top: 0;
+  align-self: flex-end;
+  margin-left: auto;
+  background: linear-gradient(to right, #00C853, #009688);
+  color: #fff;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(33,150,243,0.12);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  position: relative;
+}
+.profile-btn-card i {
+  font-size: 1.2em;
+}
+.profile-btn-card:hover {
+  background: #27ae60;
+  box-shadow: 0 8px 24px rgba(33,150,243,0.18);
+  transform: translateY(-2px) scale(1.03);
+}
+.profile-header-content-row > .profile-btn-card {
+  margin-top: 0;
+  margin-left: 0;
+  align-self: flex-start;
+}
+@media (max-width: 900px) {
+  .profile-header-content-row {
     flex-direction: column;
-    gap: 0;
+    align-items: center;
+    padding: 0 20px;
+    gap: 18px;
   }
-  
+  .profile-header-info {
+    align-items: center;
+    text-align: center;
+  }
+  .profile-btn-card {
+    width: 100%;
+    max-width: 240px;
+    align-self: center;
+    margin-top: 16px;
+    justify-content: center;
+  }
+}
+@media (max-width: 1100px) {
+  .address-list {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+@media (max-width: 700px) {
   .address-list {
     grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 0 4px;
+  }
+  .address-card {
+    padding: 16px;
+    min-width: 0;
+  }
+  .profile-header-content-row {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 }
 </style>
